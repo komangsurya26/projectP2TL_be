@@ -10,7 +10,7 @@ class PelangganController extends Controller
     // note: query default laravel tanpa perlu diisi di codingan yaitu = ?page=1/2/3 dst
     public function get(Request $request)
     {
-        $query = Pelanggan::with(['measurements', 'analisaResults']);
+        $query = Pelanggan::with(['measurements', 'analisaResult']);
 
         // Filter berdasarkan idpel
         if ($request->has('idpel') && $request->query('idpel') !== null) {
@@ -38,7 +38,34 @@ class PelangganController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $pelanggan
+            'meta' => [
+                'current_page' => $pelanggan->currentPage(),
+                'per_page' => $pelanggan->perPage(),
+                'total' => $pelanggan->total(),
+                'last_page' => $pelanggan->lastPage(),
+            ],
+            'data' => $pelanggan->map(function ($pelanggan) {
+                return [
+                    'id' => $pelanggan->idpel,
+                    'name' => $pelanggan->nama,
+                    'tariff' => $pelanggan->tarif,
+                    'power' => $pelanggan->daya . ' VA',
+                    'address' => $pelanggan->nama_up,
+                    "phone" => $pelanggan->notelp,
+                    'meterType' => strtolower($pelanggan->jenis_meter),
+                    'meterNumber' => $pelanggan->nometer,
+                    'result' => $pelanggan->analisaResult ? ucfirst(strtolower($pelanggan->analisaResult->status)) : 'Unknown',
+                    'risk' => $pelanggan->analisaResult ? (function ($status) {
+                        if ($status === 'NORMAL') {
+                            return 'low';
+                        } elseif ($status === 'SUSPECT') {
+                            return 'medium';
+                        } elseif ($status === 'ANOMALY') {
+                            return 'high';
+                        }
+                    })($pelanggan->analisaResult->status) : 'unknown',
+                ];
+            }), // ambil data saja
         ], 200);
     }
 }

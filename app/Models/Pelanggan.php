@@ -22,11 +22,11 @@ class Pelanggan extends Model
 
     public function measurements()
     {
-        return $this->hasMany(Measurement::class, 'idpel', 'idpel'); 
+        return $this->hasMany(Measurement::class, 'idpel', 'idpel');
     }
 
-    public function analisaResults()
+    public function analisaResult()
     {
-        return $this->hasMany(AnalisaResult::class, 'idpel', 'idpel');
+        return $this->hasOne(AnalisaResult::class, 'idpel', 'idpel');
     }
 }
