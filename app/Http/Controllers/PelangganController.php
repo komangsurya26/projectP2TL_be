@@ -13,12 +13,12 @@ class PelangganController extends Controller
         $query = Pelanggan::with(['measurements', 'analisaResults']);
 
         // Filter berdasarkan idpel
-        if ($request->has('idpel')) {
+        if ($request->has('idpel') && $request->query('idpel') !== null) {
             $query->where('idpel', $request->query('idpel'));
         }
 
         // Filter status
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->query('status') !== null) {
             $status = strtoupper($request->query('status'));
             $query->whereHas('analisaResults', function ($q) use ($status) {
                 if ($status === 'NORMAL') {
