@@ -12,6 +12,12 @@ class PelangganController extends Controller
     {
         $query = Pelanggan::with(['measurements', 'analisaResult']);
 
+        // Filter berdasarkan jenis_meter
+        if ($request->has('jenis_meter') && $request->query('jenis_meter') !== null) {
+            $jenis_meter = $request->query('jenis_meter');
+            $query->where('jenis_meter', strtoupper($jenis_meter));
+        }
+
         // Filter berdasarkan idpel
         if ($request->has('idpel') && $request->query('idpel') !== null) {
             $query->where('idpel', $request->query('idpel'));
