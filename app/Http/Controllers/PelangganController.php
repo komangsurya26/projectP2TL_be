@@ -12,33 +12,26 @@ class PelangganController extends Controller
     {
         $query = Pelanggan::with(['measurements', 'analisaResult']);
 
-        // Filter berdasarkan jenis_meter
-        if ($request->has('jenis_meter') && $request->query('jenis_meter') !== null) {
-            $jenis_meter = $request->query('jenis_meter');
-            $query->where('jenis_meter', strtoupper($jenis_meter));
-        }
-
-        // Filter berdasarkan idpel
-        if ($request->has('idpel') && $request->query('idpel') !== null) {
-            $query->where('idpel', $request->query('idpel'));
+        // Filter idpel
+        if ($request->filled('idpel')) {
+            $query->where('idpel', $request->idpel);
         }
 
         // Filter status
-        if ($request->has('status') && $request->query('status') !== null) {
-            $status = strtoupper($request->query('status'));
-            $query->whereHas('analisaResults', function ($q) use ($status) {
-                if ($status === 'NORMAL') {
-                    $q->where('status', 'NORMAL');
-                } elseif ($status === 'SUSPECT') {
-                    $q->where('status', 'SUSPECT');
-                } elseif ($status === 'ANOMALY') {
-                    $q->where('status', 'ANOMALY');
-                }
+        if ($request->filled('status')) {
+            $status = strtoupper($request->status);
+
+            $query->whereHas('analisaResult', function ($q) use ($status) {
+                $q->where('status', $status);
             });
         }
 
-        // Mengecek apakah ingin paginate atau ambil semua
-        $perPage = $request->query('per_page', 50); // default 50 data per halaman
+        // Filter jenis meter
+        if ($request->filled('jenis_meter')) {
+            $query->where('jenis_meter', strtoupper($request->jenis_meter));
+        }
+
+        $perPage = $request->query('per_page', 50);
 
         $pelanggan = $query->paginate($perPage);
 
@@ -57,21 +50,22 @@ class PelangganController extends Controller
                     'tariff' => $pelanggan->tarif,
                     'power' => $pelanggan->daya . ' VA',
                     'address' => $pelanggan->nama_up,
-                    "phone" => $pelanggan->notelp,
+                    'phone' => $pelanggan->notelp,
                     'meterType' => strtolower($pelanggan->jenis_meter),
                     'meterNumber' => $pelanggan->nometer,
-                    'result' => $pelanggan->analisaResult ? ucfirst(strtolower($pelanggan->analisaResult->status)) : 'Unknown',
-                    'risk' => $pelanggan->analisaResult ? (function ($status) {
-                        if ($status === 'NORMAL') {
-                            return 'low';
-                        } elseif ($status === 'SUSPECT') {
-                            return 'medium';
-                        } elseif ($status === 'ANOMALY') {
-                            return 'high';
+                    'result' => $pelanggan->analisaResult
+                        ? ucfirst(strtolower($pelanggan->analisaResult->status))
+                        : 'Unknown',
+                    'risk' => $pelanggan->analisaResult
+                        ? match ($pelanggan->analisaResult->status) {
+                            'NORMAL' => 'low',
+                            'SUSPECT' => 'medium',
+                            'ANOMALY' => 'high',
+                            default => 'unknown'
                         }
-                    })($pelanggan->analisaResult->status) : 'unknown',
+                        : 'unknown',
                 ];
-            }), // ambil data saja
-        ], 200);
+            }),
+        ]);
     }
 }
