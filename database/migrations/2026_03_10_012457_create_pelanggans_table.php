@@ -20,9 +20,7 @@ return new class extends Migration
             $table->string('nama')->nullable();
             $table->string('notelp')->nullable();
 
-            $table->string('kelurahan')->nullable();
-            $table->string('kecamatan')->nullable();
-            $table->string('kabupaten')->nullable();
+            $table->string('nama_up')->nullable();
 
             $table->string('tarif')->nullable();
             $table->integer('daya')->nullable();

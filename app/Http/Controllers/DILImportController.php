@@ -48,9 +48,7 @@ class DILImportController extends Controller
                         'daya' => $row['DAYA'] ?? null,
                         'nometer' => $row['NOMOR_METER_KWH'] ?? null,
 
-                        'kelurahan' => $row['NAMA_KELURAHAN'] ?? null,
-                        'kecamatan' => $row['NAMA_KECAMATAN'] ?? null,
-                        'kabupaten' => $row['NAMA_KABUPATEN'] ?? null,
+                        'nama_up' => $row['NAMA_UP'] ?? null,
 
                         'unitup' => $row['UNITUP'] ?? null,
 
@@ -67,7 +65,7 @@ class DILImportController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Data pelanggan berhasil diimport'
-            ]);
+            ], 200);
         } catch (\Throwable $th) {
             // dd($th);
         }
