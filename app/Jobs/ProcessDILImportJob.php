@@ -38,13 +38,8 @@ class ProcessDILImportJob implements ShouldQueue
 
         foreach ($this->batch as $row) {
             // Tentukan jenis meter
-            $meterType = 'MANUAL';
-            if (!empty($row['produk_prabayar']) && strtoupper($row['produk_prabayar']) === 'PRABAYAR') {
-                $meterType = 'PRABAYAR';
-            } else {
-                $kode = $row['kdpembmeter'] ?? null;
-                $meterType = $map[$kode] ?? 'MANUAL'; // gunakan null jika tidak ada
-            }
+            $kode = $row['kdpembmeter'] ?? null;
+            $meterType = $map[$kode] ?? 'MANUAL'; // gunakan null jika tidak ada
 
             // Ambil IDPEL
             $idpel = $row['idpel'] ?? null;
