@@ -49,7 +49,7 @@ class PelangganController extends Controller
                     'name' => $pelanggan->nama,
                     'tariff' => $pelanggan->tarif,
                     'power' => $pelanggan->daya . ' VA',
-                    'address' => $pelanggan->nama_up,
+                    'address' => $pelanggan->alamat,
                     'phone' => $pelanggan->notelp,
                     'meterType' => strtolower($pelanggan->jenis_meter),
                     'meterNumber' => $pelanggan->nometer,

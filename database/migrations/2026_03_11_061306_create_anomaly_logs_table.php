@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('anomaly_logs', function (Blueprint $table) {
             $table->id();
 
-            $table->string('idpel');
+            $table->text('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
-            $table->string('jenis_anomali');
+            $table->text('jenis_anomali');
 
             $table->double('nilai')->nullable();
             $table->double('threshold')->nullable();
 
-            $table->string('sumber_data')->nullable();
+            $table->text('sumber_data')->nullable();
 
             $table->timestamps();
         });

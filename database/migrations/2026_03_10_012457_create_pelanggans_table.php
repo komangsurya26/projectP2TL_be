@@ -15,23 +15,23 @@ return new class extends Migration
 
             $table->id();
 
-            $table->string('idpel')->unique();
+            $table->text('idpel')->unique();
 
-            $table->string('nama')->nullable();
-            $table->string('notelp')->nullable();
+            $table->text('nama')->nullable();
+            $table->text('notelp')->nullable();
 
-            $table->string('nama_up')->nullable();
+            $table->text('alamat')->nullable();
 
-            $table->string('tarif')->nullable();
+            $table->text('tarif')->nullable();
             $table->integer('daya')->nullable();
-            $table->string('nometer')->nullable();
+            $table->text('nometer')->nullable();
 
-            $table->string('unitup')->nullable();
+            $table->text('unitup')->nullable();
 
             $table->double('koordinat_x')->nullable();
             $table->double('koordinat_y')->nullable();
 
-            $table->enum('jenis_meter', ['AMI', 'AMR', 'PASKABAYAR', 'PRABAYAR'])->nullable();
+            $table->enum('jenis_meter', ['AMI', 'AMR', 'MANUAL', 'PRABAYAR'])->nullable();
 
             $table->timestamps();
         });

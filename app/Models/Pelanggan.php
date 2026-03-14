@@ -12,7 +12,7 @@ class Pelanggan extends Model
         'notelp',
         'tarif',
         'daya',
-        'nama_up',
+        'alamat',
         'unitup',
         'koordinat_x',
         'koordinat_y',
