@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('analisa_results', function (Blueprint $table) {
             $table->id();
 
-            $table->text('idpel');
+            $table->string('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
             $table->integer('risk_score')->default(0);

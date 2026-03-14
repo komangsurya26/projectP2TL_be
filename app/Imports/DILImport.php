@@ -26,6 +26,6 @@ class DILImport implements ToCollection, WithHeadingRow, WithChunkReading, Shoul
 
     public function chunkSize(): int
     {
-        return 5000; // proses per 5000 row
+        return 5000; // proses per 1000 row
     }
 }

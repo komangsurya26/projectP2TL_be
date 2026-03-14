@@ -12,7 +12,7 @@ return new class extends Migration
 
             $table->id();
 
-            $table->text('idpel');
+            $table->string('idpel');
             $table->foreign('idpel')
                 ->references('idpel')
                 ->on('pelanggans')

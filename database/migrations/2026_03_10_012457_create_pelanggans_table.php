@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->id();
 
-            $table->text('idpel')->unique();
+            $table->string('idpel')->unique();
 
             $table->text('nama')->nullable();
             $table->text('notelp')->nullable();
@@ -32,6 +32,8 @@ return new class extends Migration
             $table->double('koordinat_y')->nullable();
 
             $table->enum('jenis_meter', ['AMI', 'AMR', 'MANUAL', 'PRABAYAR'])->nullable();
+
+            $table->index('idpel');
 
             $table->timestamps();
         });

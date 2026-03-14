@@ -25,6 +25,11 @@ class ProcessDILImportJob implements ShouldQueue
      */
     private function safeFloat($value)
     {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $value = str_replace(',', '.', $value);
+
         return is_numeric($value) ? (float) $value : null;
     }
 
@@ -36,37 +41,68 @@ class ProcessDILImportJob implements ShouldQueue
             'A' => 'AMR'
         ];
 
+        $upsertData = [];
+
         foreach ($this->batch as $row) {
-            // Tentukan jenis meter
-            $kode = $row['kdpembmeter'] ?? null;
-            $meterType = $map[$kode] ?? 'MANUAL'; // gunakan null jika tidak ada
+            $idpel = isset($row['idpel']) ? trim($row['idpel']) : null;
+            if (!$idpel) continue;
 
-            // Ambil IDPEL
-            $idpel = $row['idpel'] ?? null;
-            if (!$idpel) {
-                continue; // skip row
-            }
+            $meterType = $map[$row['kdpembmeter'] ?? null] ?? 'MANUAL';
 
-            // Konversi numeric aman
-            $daya = $this->safeFloat($row['daya'] ?? null);
-            $koordinat_x = $this->safeFloat($row['koordinat_x'] ?? null);
-            $koordinat_y = $this->safeFloat($row['koordinat_y'] ?? null);
+            $upsertData[] = [
+                'idpel' => $idpel,
+                'nama' => isset($row['nama']) ? trim($row['nama']) : null,
+                'tarif' => $row['tarif'] ?? null,
+                'daya' => $this->safeFloat($row['daya'] ?? null),
+                'nometer' => trim($row['nomor_meter_kwh'] ?? $row['nomorkwh'] ?? ''),
+                'alamat' => $row['nama_up'] ?? $row['pemda_keterangan'] ?? $row['alamat'] ?? null,
+                'unitup' => $row['unitup'] ?? null,
+                'koordinat_x' => $this->safeFloat($row['koordinat_x'] ?? null),
+                'koordinat_y' => $this->safeFloat($row['koordinat_y'] ?? null),
+                'notelp' => trim($row['notelp_hp'] ?? $row['no_hp'] ?? ''),
+                'jenis_meter' => $meterType
+            ];
+        }
 
-            Pelanggan::updateOrCreate(
-                ['idpel' => $idpel],
-                [
-                    'nama' => $row['nama'] ?? null,
-                    'tarif' => $row['tarif'] ?? null,
-                    'daya' => $daya,
-                    'nometer' => $row['nomor_meter_kwh'] ?? $row['nomorkwh'] ?? null,
-                    'alamat' => $row['nama_up'] ?? $row['pemda_keterangan'] ?? $row['alamat'] ?? null,
-                    'unitup' => $row['unitup'] ?? null,
-                    'koordinat_x' => $koordinat_x,
-                    'koordinat_y' => $koordinat_y,
-                    'notelp' => $row['notelp_hp'] ?? $row['no_hp'] ?? null,
-                    'jenis_meter' => $meterType
-                ]
+        if (!empty($upsertData)) {
+            Pelanggan::upsert(
+                $upsertData,
+                ['idpel'],
+                ['nama', 'tarif', 'daya', 'nometer', 'alamat', 'unitup', 'koordinat_x', 'koordinat_y', 'notelp', 'jenis_meter']
             );
         }
+
+        // foreach ($this->batch as $row) {
+        //     // Tentukan jenis meter
+        //     $kode = $row['kdpembmeter'] ?? null;
+        //     $meterType = $map[$kode] ?? 'MANUAL'; // gunakan null jika tidak ada
+
+        //     // Ambil IDPEL
+        //     $idpel = isset($row['idpel']) ? trim($row['idpel']) : null;
+        //     if (!$idpel) {
+        //         continue; // skip row
+        //     }
+
+        //     // Konversi numeric aman
+        //     $daya = $this->safeFloat($row['daya'] ?? null);
+        //     $koordinat_x = $this->safeFloat($row['koordinat_x'] ?? null);
+        //     $koordinat_y = $this->safeFloat($row['koordinat_y'] ?? null);
+
+        //     Pelanggan::updateOrCreate(
+        //         ['idpel' => $idpel],
+        //         [
+        //             'nama' => isset($row['nama']) ? trim($row['nama']) : null,
+        //             'tarif' => $row['tarif'] ?? null,
+        //             'daya' => $daya,
+        //             'nometer' => trim($row['nomor_meter_kwh'] ?? $row['nomorkwh'] ?? ''),
+        //             'alamat' => $row['nama_up'] ?? $row['pemda_keterangan'] ?? $row['alamat'] ?? null,
+        //             'unitup' => $row['unitup'] ?? null,
+        //             'koordinat_x' => $koordinat_x,
+        //             'koordinat_y' => $koordinat_y,
+        //             'notelp' => trim($row['notelp_hp'] ?? $row['no_hp'] ?? ''),
+        //             'jenis_meter' => $meterType
+        //         ]
+        //     );
+        // }
     }
 }

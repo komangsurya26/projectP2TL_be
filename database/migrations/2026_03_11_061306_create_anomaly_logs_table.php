@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('anomaly_logs', function (Blueprint $table) {
             $table->id();
 
-            $table->text('idpel');
+            $table->string('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
             $table->text('jenis_anomali');
