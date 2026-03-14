@@ -64,7 +64,7 @@ class ProcessDILImportJob implements ShouldQueue
                     'tarif' => $row['tarif'] ?? null,
                     'daya' => $daya,
                     'nometer' => $row['nomor_meter_kwh'] ?? $row['nomorkwh'] ?? null,
-                    'alamat' => $row['pemda_keterangan'] ?? $row['alamat'] ?? $row['nama_up'] ?? null,
+                    'alamat' => $row['nama_up'] ?? $row['pemda_keterangan'] ?? $row['alamat'] ?? null,
                     'unitup' => $row['unitup'] ?? null,
                     'koordinat_x' => $koordinat_x,
                     'koordinat_y' => $koordinat_y,
