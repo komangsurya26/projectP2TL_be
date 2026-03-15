@@ -32,6 +32,22 @@ class ProcessDILImportJob implements ShouldQueue
         return is_numeric($value) ? (float) $value : null;
     }
 
+    private function detectDelimiter($filePath)
+    {
+        $delimiters = ["\t", ";", ","];
+        $counts = [];
+
+        $handle = fopen($filePath, "r");
+        $firstLine = fgets($handle);
+        fclose($handle);
+
+        foreach ($delimiters as $delimiter) {
+            $counts[$delimiter] = substr_count($firstLine, $delimiter);
+        }
+
+        return array_search(max($counts), $counts);
+    }
+
     public function handle()
     {
         if (!file_exists($this->filePath)) {
@@ -62,7 +78,7 @@ class ProcessDILImportJob implements ShouldQueue
             'kdpembmeter'
         ];
 
-        $delimiter = ";";
+        $delimiter = $this->detectDelimiter($this->filePath);
 
         $map = [
             'L' => 'AMI',
