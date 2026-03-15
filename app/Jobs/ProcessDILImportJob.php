@@ -47,7 +47,8 @@ class ProcessDILImportJob implements ShouldQueue
             $idpel = isset($row['idpel']) ? trim($row['idpel']) : null;
             if (!$idpel) continue;
 
-            $meterType = $map[$row['kdpembmeter'] ?? null] ?? 'MANUAL';
+            $kode = strtoupper(trim($row['kdpembmeter'] ?? ''));
+            $meterType = $map[$kode] ?? 'MANUAL';
 
             $upsertData[] = [
                 'idpel' => $idpel,
