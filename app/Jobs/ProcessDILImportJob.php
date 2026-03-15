@@ -71,38 +71,5 @@ class ProcessDILImportJob implements ShouldQueue
                 ['nama', 'tarif', 'daya', 'nometer', 'alamat', 'unitup', 'koordinat_x', 'koordinat_y', 'notelp', 'jenis_meter']
             );
         }
-
-        // foreach ($this->batch as $row) {
-        //     // Tentukan jenis meter
-        //     $kode = $row['kdpembmeter'] ?? null;
-        //     $meterType = $map[$kode] ?? 'MANUAL'; // gunakan null jika tidak ada
-
-        //     // Ambil IDPEL
-        //     $idpel = isset($row['idpel']) ? trim($row['idpel']) : null;
-        //     if (!$idpel) {
-        //         continue; // skip row
-        //     }
-
-        //     // Konversi numeric aman
-        //     $daya = $this->safeFloat($row['daya'] ?? null);
-        //     $koordinat_x = $this->safeFloat($row['koordinat_x'] ?? null);
-        //     $koordinat_y = $this->safeFloat($row['koordinat_y'] ?? null);
-
-        //     Pelanggan::updateOrCreate(
-        //         ['idpel' => $idpel],
-        //         [
-        //             'nama' => isset($row['nama']) ? trim($row['nama']) : null,
-        //             'tarif' => $row['tarif'] ?? null,
-        //             'daya' => $daya,
-        //             'nometer' => trim($row['nomor_meter_kwh'] ?? $row['nomorkwh'] ?? ''),
-        //             'alamat' => $row['nama_up'] ?? $row['pemda_keterangan'] ?? $row['alamat'] ?? null,
-        //             'unitup' => $row['unitup'] ?? null,
-        //             'koordinat_x' => $koordinat_x,
-        //             'koordinat_y' => $koordinat_y,
-        //             'notelp' => trim($row['notelp_hp'] ?? $row['no_hp'] ?? ''),
-        //             'jenis_meter' => $meterType
-        //         ]
-        //     );
-        // }
     }
 }

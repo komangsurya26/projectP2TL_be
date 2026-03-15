@@ -23,7 +23,7 @@ return new class extends Migration
             $table->text('alamat')->nullable();
 
             $table->text('tarif')->nullable();
-            $table->integer('daya')->nullable();
+            $table->bigInteger('daya')->nullable();
             $table->text('nometer')->nullable();
 
             $table->text('unitup')->nullable();

@@ -2,26 +2,17 @@
 
 namespace App\Imports;
 
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Jobs\ProcessDILImportJob;
+use Maatwebsite\Excel\Concerns\ToArray;
 
-class DILImport implements ToCollection, WithHeadingRow, WithChunkReading, ShouldQueue
+class DILImport implements ToArray, WithHeadingRow, WithChunkReading, ShouldQueue
 {
-    public function collection(Collection $rows)
+    public function array(array $rows)
     {
-        $batch = [];
-
-        foreach ($rows as $row) {
-            $batch[] = $row->toArray();
-        }
-
-        if (!empty($batch)) {
-            ProcessDILImportJob::dispatch($batch);
-        }
+        ProcessDILImportJob::dispatch($rows);
     }
 
     public function chunkSize(): int
