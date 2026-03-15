@@ -53,7 +53,7 @@ class ProcessDILImportJob implements ShouldQueue
             'tarif',
             'daya',
             'nomor_meter_kwh',
-            'skip_header',
+            'nomor_gardu',
             'nama_up',
             'unitup',
             'koordinat_x',
