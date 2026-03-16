@@ -22,16 +22,10 @@ return new class extends Migration
 
             $table->text('alamat')->nullable();
 
-            $table->text('tarif')->nullable();
-            $table->bigInteger('daya')->nullable();
-            $table->text('nometer')->nullable();
-
             $table->text('unitup')->nullable();
 
             $table->double('koordinat_x')->nullable();
             $table->double('koordinat_y')->nullable();
-
-            $table->enum('jenis_meter', ['AMI', 'AMR', 'MANUAL', 'PRABAYAR'])->nullable();
 
             $table->index('idpel');
 

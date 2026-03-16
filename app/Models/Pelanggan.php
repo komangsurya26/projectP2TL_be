@@ -10,23 +10,14 @@ class Pelanggan extends Model
         'idpel',
         'nama',
         'notelp',
-        'tarif',
-        'daya',
         'alamat',
         'unitup',
         'koordinat_x',
-        'koordinat_y',
-        'jenis_meter',
-        'nometer'
+        'koordinat_y'
     ];
 
-    public function measurements()
+    public function meters()
     {
-        return $this->hasMany(Measurement::class, 'idpel', 'idpel');
-    }
-
-    public function analisaResult()
-    {
-        return $this->hasOne(AnalisaResult::class, 'idpel', 'idpel');
+        return $this->hasMany(Meters::class, 'idpel', 'idpel');
     }
 }

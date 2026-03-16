@@ -11,18 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('anomaly_logs', function (Blueprint $table) {
+        Schema::create('meters', function (Blueprint $table) {
+
             $table->id();
 
             $table->string('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
-            $table->text('jenis_anomali');
+            $table->string('meter_number')->unique();
 
-            $table->double('nilai')->nullable();
-            $table->double('threshold')->nullable();
+            $table->enum('meter_type', [
+                'AMI',
+                'AMR',
+                'MANUAL',
+                'PRABAYAR'
+            ]);
 
-            $table->text('sumber_data')->nullable();
+            $table->string('tariff')->nullable();
+
+            $table->bigInteger('power_capacity')->nullable();
 
             $table->timestamps();
         });
@@ -33,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('anomaly_logs');
+        Schema::dropIfExists('meters');
     }
 };

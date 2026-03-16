@@ -10,25 +10,18 @@ class PelangganController extends Controller
     // note: query default laravel tanpa perlu diisi di codingan yaitu = ?page=1/2/3 dst
     public function get(Request $request)
     {
-        $query = Pelanggan::with(['measurements', 'analisaResult']);
+        $query = Pelanggan::with(['meters']);
 
         // Filter idpel
         if ($request->filled('idpel')) {
             $query->where('idpel', $request->idpel);
         }
 
-        // Filter status
-        if ($request->filled('status')) {
-            $status = strtoupper($request->status);
-
-            $query->whereHas('analisaResult', function ($q) use ($status) {
-                $q->where('status', $status);
-            });
-        }
-
         // Filter jenis meter
         if ($request->filled('jenis_meter')) {
-            $query->where('jenis_meter', strtoupper($request->jenis_meter));
+            $query->whereHas('meters', function ($q) use ($request) {
+                $q->where('meter_type', strtoupper($request->jenis_meter));
+            });
         }
 
         $perPage = $request->query('per_page', 50);
@@ -44,26 +37,18 @@ class PelangganController extends Controller
                 'last_page' => $pelanggan->lastPage(),
             ],
             'data' => $pelanggan->map(function ($pelanggan) {
+                $meter = $pelanggan->meters->first();
                 return [
                     'id' => $pelanggan->idpel,
                     'name' => $pelanggan->nama,
-                    'tariff' => $pelanggan->tarif,
-                    'power' => $pelanggan->daya . ' VA',
+                    'tariff' => $meter ? $meter->tariff : null,
+                    'power' => $meter ? $meter->power_capacity . ' VA' : null,
                     'address' => $pelanggan->alamat,
                     'phone' => $pelanggan->notelp,
-                    'meterType' => strtolower($pelanggan->jenis_meter),
-                    'meterNumber' => $pelanggan->nometer,
-                    'result' => $pelanggan->analisaResult
-                        ? ucfirst(strtolower($pelanggan->analisaResult->status))
-                        : 'Unknown',
-                    'risk' => $pelanggan->analisaResult
-                        ? match ($pelanggan->analisaResult->status) {
-                            'NORMAL' => 'low',
-                            'SUSPECT' => 'medium',
-                            'ANOMALY' => 'high',
-                            default => 'unknown'
-                        }
-                        : 'unknown',
+                    'meterType' => $meter ? strtolower($meter->meter_type) : null,
+                    'meterNumber' => $meter ? $meter->meter_number : null,
+                    'result' => 'Unknown',
+                    'risk' => 'Unknown'
                 ];
             }),
         ]);
