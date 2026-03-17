@@ -28,6 +28,13 @@ class PelangganController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            $status = $request->status;
+            $query->whereHas('meters.analysis', function ($q) use ($status) {
+                $q->where('anomaly_status', $status);
+            });
+        }
+
         $perPage = $request->query('per_page', 50);
 
         $pelanggan = $query->paginate($perPage);
@@ -55,7 +62,7 @@ class PelangganController extends Controller
                     'phone' => $pelanggan->notelp,
                     'meterType' => $meter ? strtolower($meter->meter_type) : null,
                     'meterNumber' => $meter ? $meter->meter_number : null,
-                    'result' => $status ?? 'Unknown',
+                    'result' => $status ?? 'UNKNOWN',
                     'risk_score' => $risk_score,
                 ];
             }),
