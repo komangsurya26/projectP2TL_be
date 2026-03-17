@@ -15,10 +15,12 @@ class PelangganController extends Controller
         // Filter idpel atau nomor meter
         if ($request->filled('idpel')) {
             $idpel = $request->idpel;
-            $query->where('idpel', $idpel)
-                ->orWhereHas('meters', function ($q) use ($idpel) {
-                    $q->where('meter_number', $idpel);
-                });
+            $query->where(function ($q) use ($idpel) {
+                $q->where('idpel', $idpel)
+                    ->orWhereHas('meters', function ($q2) use ($idpel) {
+                        $q2->where('meter_number', $idpel);
+                    });
+            });
         }
 
         // Filter jenis meter

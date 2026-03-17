@@ -28,7 +28,8 @@ return new class extends Migration
             $table->string('analysis_method')->nullable(); // misal “rule-based” atau “Isolation Forest”
 
             $table->index(['meter_id', 'analysis_date']);
-
+            $table->index(['meter_id', 'anomaly_status']);
+            
             $table->unique(['meter_id', 'analysis_date']);
 
             $table->timestamps();

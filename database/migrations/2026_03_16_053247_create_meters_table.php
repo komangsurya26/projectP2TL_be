@@ -29,6 +29,10 @@ return new class extends Migration
 
             $table->string('tariff')->nullable();
 
+            $table->index(['idpel', 'meter_number']);
+            $table->index(['idpel', 'meter_type']);
+
+
             $table->bigInteger('power_capacity')->nullable();
 
             $table->timestamps();
