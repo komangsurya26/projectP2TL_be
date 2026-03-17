@@ -12,9 +12,13 @@ class PelangganController extends Controller
     {
         $query = Pelanggan::with(['meters']);
 
-        // Filter idpel
+        // Filter idpel atau nomor meter
         if ($request->filled('idpel')) {
-            $query->where('idpel', $request->idpel);
+            $idpel = $request->idpel;
+            $query->where('idpel', $idpel)
+                ->orWhereHas('meters', function ($q) use ($idpel) {
+                    $q->where('meter_number', $idpel);
+                });
         }
 
         // Filter jenis meter
@@ -38,6 +42,9 @@ class PelangganController extends Controller
             ],
             'data' => $pelanggan->map(function ($pelanggan) {
                 $meter = $pelanggan->meters->first();
+                $analysis = $meter?->analysis?->first();
+                $status = $analysis?->anomaly_status;
+
                 return [
                     'id' => $pelanggan->idpel,
                     'name' => $pelanggan->nama,
@@ -47,8 +54,14 @@ class PelangganController extends Controller
                     'phone' => $pelanggan->notelp,
                     'meterType' => $meter ? strtolower($meter->meter_type) : null,
                     'meterNumber' => $meter ? $meter->meter_number : null,
-                    'result' => 'Unknown',
-                    'risk' => 'Unknown'
+                    'result' => $status ?? 'Unknown',
+                    'risk' => match (true) {
+                        is_null($status) => 'unknown',
+                        $status == 'LOW_CONSUMPTION' => 'low',
+                        $status == 'SUSPECT' => 'medium',
+                        $status == 'ANOMALY' => 'high',
+                        default => 'normal',
+                    },
                 ];
             }),
         ]);
