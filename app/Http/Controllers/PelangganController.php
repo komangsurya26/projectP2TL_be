@@ -55,13 +55,7 @@ class PelangganController extends Controller
                     'meterType' => $meter ? strtolower($meter->meter_type) : null,
                     'meterNumber' => $meter ? $meter->meter_number : null,
                     'result' => $status ?? 'Unknown',
-                    'risk' => match (true) {
-                        is_null($status) => 'unknown',
-                        $status == 'LOW_CONSUMPTION' => 'low',
-                        $status == 'SUSPECT' => 'medium',
-                        $status == 'ANOMALY' => 'high',
-                        default => 'normal',
-                    },
+                    'risk_score' => $analysis?->anomaly_score ?? 'unknown',
                 ];
             }),
         ]);
