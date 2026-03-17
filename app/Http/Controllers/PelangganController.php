@@ -7,39 +7,61 @@ use App\Models\Pelanggan;
 
 class PelangganController extends Controller
 {
-    // note: query default laravel tanpa perlu diisi di codingan yaitu = ?page=1/2/3 dst
     public function get(Request $request)
     {
-        $query = Pelanggan::with(['meters']);
+        $idpelOrMeter = $request->input('idpel');
+
+        // Base query dengan join agar pencarian idpel atau meter_number cepat
+        $query = Pelanggan::query()
+            ->leftJoin('meters', 'pelanggans.idpel', '=', 'meters.idpel')
+            ->leftJoin('meter_analysis', 'meters.id', '=', 'meter_analysis.meter_id')
+            ->select('pelanggans.*')
+            ->distinct();
 
         // Filter idpel atau nomor meter
-        if ($request->filled('idpel')) {
-            $idpel = $request->idpel;
-            $query->where(function ($q) use ($idpel) {
-                $q->where('idpel', $idpel)
-                    ->orWhereHas('meters', function ($q2) use ($idpel) {
-                        $q2->where('meter_number', $idpel);
-                    });
+        if ($idpelOrMeter) {
+            $query->where(function ($q) use ($idpelOrMeter) {
+                $q->where('pelanggans.idpel', $idpelOrMeter)
+                    ->orWhere('meters.meter_number', $idpelOrMeter);
             });
         }
 
         // Filter jenis meter
         if ($request->filled('jenis_meter')) {
-            $query->whereHas('meters', function ($q) use ($request) {
-                $q->where('meter_type', strtoupper($request->jenis_meter));
-            });
+            $jenis = strtoupper($request->jenis_meter);
+            $query->where('meters.meter_type', $jenis);
         }
 
+        // Filter status anomaly
         if ($request->filled('status')) {
             $status = $request->status;
-            $query->whereHas('meters.analysis', function ($q) use ($status) {
-                $q->where('anomaly_status', $status);
-            });
+            $query->where('meter_analysis.anomaly_status', $status);
         }
 
+        // Pagination
         $perPage = $request->query('per_page', 50);
-
         $pelanggan = $query->paginate($perPage);
+
+        // Ambil meters dan analysis via eager loading untuk mapping
+        $pelanggan->load(['meters.analysis']);
+
+        $data = $pelanggan->map(function ($pelanggan) {
+            $meter = $pelanggan->meters->first();
+            $analysis = $meter?->analysis?->first();
+
+            return [
+                'id' => $pelanggan->idpel,
+                'name' => $pelanggan->nama,
+                'tariff' => $meter ? $meter->tariff : null,
+                'power' => $meter ? $meter->power_capacity . ' VA' : null,
+                'address' => $pelanggan->alamat,
+                'phone' => $pelanggan->notelp,
+                'meterType' => $meter ? strtolower($meter->meter_type) : null,
+                'meterNumber' => $meter ? $meter->meter_number : null,
+                'result' => $analysis?->anomaly_status ?? 'UNKNOWN',
+                'risk_score' => $analysis?->anomaly_score ?? '-',
+            ];
+        });
 
         return response()->json([
             'status' => 'success',
@@ -49,25 +71,7 @@ class PelangganController extends Controller
                 'total' => $pelanggan->total(),
                 'last_page' => $pelanggan->lastPage(),
             ],
-            'data' => $pelanggan->map(function ($pelanggan) {
-                $meter = $pelanggan->meters->first();
-                $analysis = $meter?->analysis?->first();
-                $risk_score = $analysis?->anomaly_score ?? '-';
-                $status = $analysis?->anomaly_status;
-
-                return [
-                    'id' => $pelanggan->idpel,
-                    'name' => $pelanggan->nama,
-                    'tariff' => $meter ? $meter->tariff : null,
-                    'power' => $meter ? $meter->power_capacity . ' VA' : null,
-                    'address' => $pelanggan->alamat,
-                    'phone' => $pelanggan->notelp,
-                    'meterType' => $meter ? strtolower($meter->meter_type) : null,
-                    'meterNumber' => $meter ? $meter->meter_number : null,
-                    'result' => $status ?? 'UNKNOWN',
-                    'risk_score' => $risk_score,
-                ];
-            }),
+            'data' => $data,
         ]);
     }
 }

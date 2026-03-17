@@ -32,6 +32,7 @@ return new class extends Migration
             $table->index(['idpel', 'meter_number']);
             $table->index(['idpel', 'meter_type']);
 
+            $table->index(['meter_number', 'idpel']);
 
             $table->bigInteger('power_capacity')->nullable();
 
