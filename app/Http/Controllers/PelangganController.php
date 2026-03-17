@@ -43,6 +43,7 @@ class PelangganController extends Controller
             'data' => $pelanggan->map(function ($pelanggan) {
                 $meter = $pelanggan->meters->first();
                 $analysis = $meter?->analysis?->first();
+                $risk_score = $analysis?->anomaly_score ?? '-';
                 $status = $analysis?->anomaly_status;
 
                 return [
@@ -55,7 +56,7 @@ class PelangganController extends Controller
                     'meterType' => $meter ? strtolower($meter->meter_type) : null,
                     'meterNumber' => $meter ? $meter->meter_number : null,
                     'result' => $status ?? 'Unknown',
-                    'risk_score' => $analysis?->anomaly_score ?? 'unknown',
+                    'risk_score' => $risk_score,
                 ];
             }),
         ]);
