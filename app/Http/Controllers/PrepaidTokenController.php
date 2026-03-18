@@ -12,6 +12,10 @@ class PrepaidTokenController extends Controller
         $clean = preg_replace('/\D/', '', $token);
         return trim(chunk_split($clean, 4, '-'), '-');
     }
+    private function formatRupiah($amount)
+    {
+        return 'Rp ' . number_format($amount, 0, ',', '.');
+    }
     public function getPurchaseHistory($meterNumber)
     {
         $meter = Meters::where('meter_number', $meterNumber)->first();
@@ -32,7 +36,7 @@ class PrepaidTokenController extends Controller
             'data' => $tokens->map(function ($item) {
                 return [
                     'date' => $item->purchase_date,
-                    'amount' => 'Rp. ' . $item->amount_paid,
+                    'amount' => $this->formatRupiah($item->amount_paid),
                     'energy' => $item->kwh_purchased . ' kWh',
                     'token' => $this->formatToken($item->token_number),
                 ];
