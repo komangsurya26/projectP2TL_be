@@ -18,6 +18,9 @@ return new class extends Migration
             $table->date('purchase_date');
             $table->double('kwh_purchased');
             $table->bigInteger('amount_paid')->nullable();
+
+            $table->index(['meter_id', 'purchase_date']);
+
             $table->timestamps();
         });
     }
