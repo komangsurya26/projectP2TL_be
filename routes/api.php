@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\PrepaidTokenController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\DILImportController;
-use App\Http\Controllers\Api\PrepaidTokenController;
 use App\Http\Controllers\PelangganController;
 
 Route::get('/download-template-dil', [TemplateController::class, 'download_dil']);
@@ -16,4 +16,4 @@ Route::post('/upload-dil', [DILImportController::class, 'upload']);
 
 Route::get('/pelanggan', [PelangganController::class, 'get']);
 
-Route::get('/meters/{meterId}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
+Route::get('/meters/{meterNumber}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);

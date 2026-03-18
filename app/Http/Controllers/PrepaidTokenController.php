@@ -1,24 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\PrepaidToken;
+use App\Models\Meters;
 
 class PrepaidTokenController extends Controller
 {
-    public function getPurchaseHistory($meterId)
+    public function getPurchaseHistory($meterNumber)
     {
-        $tokens = PrepaidToken::where('meter_id', $meterId)
-            ->orderBy('purchase_date', 'desc')
-            ->paginate(10);
+        $meter = Meters::where('meter_number', $meterNumber)->first();
 
-        if (!$tokens->count()) {
+        if (!$meter) {
             return response()->json([
-                'status' => 'success',
-                'data' => []
-            ]);
+                'status' => 'error',
+                'message' => 'Meter not found'
+            ], 404);
         }
+
+        $tokens = $meter->prepaidTokens()
+            ->orderBy('purchase_date', 'desc')
+            ->get();
 
         return response()->json([
             'status' => 'success',
