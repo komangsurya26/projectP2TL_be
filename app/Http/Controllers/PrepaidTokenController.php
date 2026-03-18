@@ -7,6 +7,11 @@ use App\Models\Meters;
 
 class PrepaidTokenController extends Controller
 {
+    private function formatToken($token)
+    {
+        $clean = preg_replace('/\D/', '', $token);
+        return trim(chunk_split($clean, 4, '-'), '-');
+    }
     public function getPurchaseHistory($meterNumber)
     {
         $meter = Meters::where('meter_number', $meterNumber)->first();
@@ -27,9 +32,9 @@ class PrepaidTokenController extends Controller
             'data' => $tokens->map(function ($item) {
                 return [
                     'date' => $item->purchase_date,
-                    'amount' => $item->amount_paid,
-                    'energy' => $item->kwh_purchased,
-                    'token' => $item->token_number,
+                    'amount' => 'Rp. ' . $item->amount_paid,
+                    'energy' => $item->kwh_purchased . ' kWh',
+                    'token' => $this->formatToken($item->token_number),
                 ];
             })
         ]);
