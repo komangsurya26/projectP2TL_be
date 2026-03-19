@@ -72,9 +72,12 @@ class MeterReadingController extends Controller
             ->orderBy('month')
             ->get();
 
-        $yearly = $monthly->groupBy('year')->map(function ($group) {
-            return $group->sum(fn($m) => $m->max_kwh - $m->min_kwh);
-        });
+        $yearly = $monthly->groupBy('year')->map(function ($group, $year) {
+            return [
+                'year' => (int) $year,
+                'total_usage' => $group->sum(fn($m) => $m->max_kwh - $m->min_kwh),
+            ];
+        })->values();
 
         return response()->json([
             'status' => 'success',
