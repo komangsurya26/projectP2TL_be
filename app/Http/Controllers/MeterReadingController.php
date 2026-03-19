@@ -87,6 +87,7 @@ class MeterReadingController extends Controller
 
     public function voltageTrend($meterNumber)
     {
+        return $meterNumber;
         $meter = Meters::where('meter_number', $meterNumber)->first();
 
         if (!$meter) {
