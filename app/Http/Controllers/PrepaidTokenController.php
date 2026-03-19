@@ -92,4 +92,49 @@ class PrepaidTokenController extends Controller
             'data' => $result
         ]);
     }
+
+    public function getTokenTrend($meterNumber)
+    {
+        $meter = Meters::where('meter_number', $meterNumber)->first();
+
+        if (!$meter) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Meter not found'
+            ], 404);
+        }
+
+        $raw = DB::table('prepaid_tokens')
+            ->selectRaw("
+            DATE_TRUNC('month', purchase_date) as month,
+            SUM(kwh_purchased) as energy,
+            COUNT(*) as frequency
+        ")
+            ->where('meter_id', $meter->id)
+            ->where('purchase_date', '>=', now()->subMonths(12))
+            ->groupByRaw("DATE_TRUNC('month', purchase_date)")
+            ->orderByRaw("DATE_TRUNC('month', purchase_date)")
+            ->get()
+            ->keyBy(function ($item) {
+                return Carbon::parse($item->month)->format('Y-m');
+            });
+
+        // generate 12 bulan (biar tidak bolong)
+        $result = collect(range(0, 11))->map(function ($i) use ($raw) {
+            $date = now()->subMonths(11 - $i);
+            $key = $date->format('Y-m');
+
+            return [
+                'month' => $date->format('M'), // Jan, Feb
+                'label' => $date->format('M Y'),
+                'energy' => $raw[$key]->energy ?? 0,
+                'frequency' => $raw[$key]->frequency ?? 0,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $result
+        ]);
+    }
 }

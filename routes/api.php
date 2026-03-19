@@ -18,3 +18,4 @@ Route::get('/pelanggan', [PelangganController::class, 'get']);
 
 Route::get('/meters/{meterNumber}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
 Route::get('/meters/{meterNumber}/monthly-usage', [PrepaidTokenController::class, 'getMonthlyUsage']);
+Route::get('/meters/{meterNumber}/token-trend', [PrepaidTokenController::class, 'getTokenTrend']);
