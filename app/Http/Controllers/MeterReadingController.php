@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MeterReading;
 use App\Models\Meters;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -87,7 +88,6 @@ class MeterReadingController extends Controller
 
     public function voltageTrend($meterNumber)
     {
-        return $meterNumber;
         $meter = Meters::where('meter_number', $meterNumber)->first();
 
         if (!$meter) {
@@ -97,8 +97,7 @@ class MeterReadingController extends Controller
             ], 404);
         }
 
-        $readings = DB::table('meter_readings')
-            ->where('meter_id', $meter->id)
+        $readings = MeterReading::where('meter_id', $meter->id)
             ->orderBy('reading_time')
             ->get();
 
