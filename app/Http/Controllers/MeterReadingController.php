@@ -244,17 +244,22 @@ class MeterReadingController extends Controller
         $readings = MeterReading::where('meter_id', $meter->id)
             ->orderBy('reading_time', 'desc')
             ->limit(100) // misal ambil 100 terakhir
-            ->get(['reading_time', 'import_kwh', 'kvarh', 'power_factor', 'voltage_r', 'voltage_s', 'voltage_t', 'current_r', 'current_s', 'current_t']);
+            ->get(['reading_time', 'import_kwh', 'power_factor', 'voltage_r', 'voltage_s', 'voltage_t', 'current_r', 'current_s', 'current_t']);
 
         $data = $readings->map(function ($r) {
             // Ambil rata-rata voltage dan current
             $voltage = collect([$r->voltage_r, $r->voltage_s, $r->voltage_t])->filter()->avg();
             $current = collect([$r->current_r, $r->current_s, $r->current_t])->filter()->avg();
+            $kvarh = 0;
+            if ($r->import_kwh && $r->power_factor) {
+                $kva = $r->import_kwh / $r->power_factor;
+                $kvarh = sqrt(pow($kva, 2) - pow($r->import_kwh, 2));
+            }
 
             return [
                 'date' => date('Y-m-d H:i', strtotime($r->reading_time)),
-                'kwh' => round($r->import_kwh, 2),
-                'kvarh' => round($r->kvarh ?? 0, 2),
+                'kwh' => round($r->import_kwh ?? 0, 2),
+                'kvarh' => round($kvarh, 2),
                 'pf' => round($r->power_factor ?? 0, 2),
                 'voltage' => $voltage ? round($voltage, 1) : 0,
                 'current' => $current ? round($current, 2) : 0,
