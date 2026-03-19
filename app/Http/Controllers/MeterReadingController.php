@@ -84,4 +84,80 @@ class MeterReadingController extends Controller
             'data' => $yearly
         ]);
     }
+
+    public function voltageTrend($meterNumber)
+    {
+        $meter = Meters::where('meter_number', $meterNumber)->first();
+
+        if (!$meter) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Meter not found'
+            ], 404);
+        }
+
+        $readings = DB::table('meter_readings')
+            ->where('meter_id', $meter->id)
+            ->orderBy('reading_time')
+            ->get();
+
+        // Buat interval 4 jam
+        $intervals = [
+            '00:00' => [],
+            '04:00' => [],
+            '08:00' => [],
+            '12:00' => [],
+            '16:00' => [],
+            '20:00' => [],
+        ];
+
+        foreach ($readings as $r) {
+            $hour = (int) date('H', strtotime($r->reading_time));
+
+            if ($hour >= 0 && $hour < 4) {
+                $intervals['00:00'][] = $r;
+            } elseif ($hour >= 4 && $hour < 8) {
+                $intervals['04:00'][] = $r;
+            } elseif ($hour >= 8 && $hour < 12) {
+                $intervals['08:00'][] = $r;
+            } elseif ($hour >= 12 && $hour < 16) {
+                $intervals['12:00'][] = $r;
+            } elseif ($hour >= 16 && $hour < 20) {
+                $intervals['16:00'][] = $r;
+            } else {
+                $intervals['20:00'][] = $r;
+            }
+        }
+
+        // Hitung rata-rata voltage per interval
+        $result = [];
+        foreach ($intervals as $time => $group) {
+            if (count($group) > 0) {
+                $avgVoltage = collect($group)->avg(function ($r) {
+                    // misal ambil rata-rata voltage_r,s,t
+                    $voltages = array_filter([
+                        $r->voltage_r,
+                        $r->voltage_s,
+                        $r->voltage_t,
+                    ]);
+                    return count($voltages) > 0 ? array_sum($voltages) / count($voltages) : null;
+                });
+                $result[] = [
+                    'time' => $time,
+                    'voltage' => round($avgVoltage, 2),
+                ];
+            } else {
+                $result[] = [
+                    'time' => $time,
+                    'voltage' => 0,
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'meter_id' => $meter->id,
+            'data' => $result
+        ]);
+    }
 }
