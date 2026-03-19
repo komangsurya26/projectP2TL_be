@@ -160,4 +160,73 @@ class MeterReadingController extends Controller
             'data' => $result
         ]);
     }
+
+    public function powerFactorTrend($meterNumber)
+    {
+        $meter = Meters::where('meter_number', $meterNumber)->first();
+
+        if (!$meter) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Meter not found'
+            ], 404);
+        }
+
+        $readings = MeterReading::where('meter_id', $meter->id)
+            ->orderBy('reading_time')
+            ->get();
+
+        // Buat interval 4 jam
+        $intervals = [
+            '00:00' => [],
+            '04:00' => [],
+            '08:00' => [],
+            '12:00' => [],
+            '16:00' => [],
+            '20:00' => [],
+        ];
+
+        foreach ($readings as $r) {
+            $hour = (int) date('H', strtotime($r->reading_time));
+
+            if ($hour >= 0 && $hour < 4) {
+                $intervals['00:00'][] = $r;
+            } elseif ($hour >= 4 && $hour < 8) {
+                $intervals['04:00'][] = $r;
+            } elseif ($hour >= 8 && $hour < 12) {
+                $intervals['08:00'][] = $r;
+            } elseif ($hour >= 12 && $hour < 16) {
+                $intervals['12:00'][] = $r;
+            } elseif ($hour >= 16 && $hour < 20) {
+                $intervals['16:00'][] = $r;
+            } else {
+                $intervals['20:00'][] = $r;
+            }
+        }
+
+        // Hitung rata-rata power factor per interval
+        $result = [];
+        foreach ($intervals as $time => $group) {
+            if (count($group) > 0) {
+                $avgPowerFactor = collect($group)->avg(function ($r) {
+                    return $r->power_factor;
+                });
+                $result[] = [
+                    'time' => $time,
+                    'power_factor' => round($avgPowerFactor, 2),
+                ];
+            } else {
+                $result[] = [
+                    'time' => $time,
+                    'power_factor' => 0,
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'meter_id' => $meter->id,
+            'data' => $result
+        ]);
+    }
 }

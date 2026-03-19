@@ -24,3 +24,4 @@ Route::get('/meters/{meterNumber}/token-trend', [PrepaidTokenController::class, 
 Route::get('/meters/{meterNumber}/ami-usage', [MeterReadingController::class, 'getMonthlyUsageAMI']);
 Route::get('/meters/{meterNumber}/ami-yearly-usage', [MeterReadingController::class, 'yearlyUsageAMI']);
 Route::get('/meters/{meterNumber}/voltage-trend', [MeterReadingController::class, 'voltageTrend']);
+Route::get('/meters/{meterNumber}/power-factor-trend', [MeterReadingController::class, 'powerFactorTrend']);
