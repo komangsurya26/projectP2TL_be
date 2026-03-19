@@ -25,3 +25,4 @@ Route::get('/meters/{meterNumber}/ami-usage', [MeterReadingController::class, 'g
 Route::get('/meters/{meterNumber}/ami-yearly-usage', [MeterReadingController::class, 'yearlyUsageAMI']);
 Route::get('/meters/{meterNumber}/voltage-trend', [MeterReadingController::class, 'voltageTrend']);
 Route::get('/meters/{meterNumber}/power-factor-trend', [MeterReadingController::class, 'powerFactorTrend']);
+Route::get('/meters/{meterNumber}/measurement-history', [MeterReadingController::class, 'measurementHistory']);
