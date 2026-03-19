@@ -50,4 +50,35 @@ class MeterReadingController extends Controller
             'data' => $result
         ]);
     }
+
+    public function yearlyUsageAMI($meterNumber)
+    {
+        $meter = Meters::where('meter_number', $meterNumber)->first();
+
+        if (!$meter) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Meter not found'
+            ], 404);
+        }
+
+        $monthly = DB::table('meter_readings')
+            ->selectRaw("DATE_TRUNC('month', reading_time) AS month,
+                     EXTRACT(YEAR FROM reading_time) AS year,
+                     MAX(import_kwh) AS max_kwh,
+                     MIN(import_kwh) AS min_kwh")
+            ->where('meter_id', $meter->id)
+            ->groupBy('month', 'year')
+            ->orderBy('month')
+            ->get();
+
+        $yearly = $monthly->groupBy('year')->map(function ($group) {
+            return $group->sum(fn($m) => $m->max_kwh - $m->min_kwh);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $yearly
+        ]);
+    }
 }
