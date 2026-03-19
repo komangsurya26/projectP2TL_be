@@ -17,3 +17,4 @@ Route::post('/upload-dil', [DILImportController::class, 'upload']);
 Route::get('/pelanggan', [PelangganController::class, 'get']);
 
 Route::get('/meters/{meterNumber}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
+Route::get('/meters/{meterNumber}/monthly-usage', [PrepaidTokenController::class, 'getMonthlyUsage']);
