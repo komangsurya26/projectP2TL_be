@@ -98,7 +98,7 @@ class MeterReadingController extends Controller
         }
 
         $readings = MeterReading::where('meter_id', $meter->id)
-            ->orderBy('reading_time')
+            ->orderBy('reading_time', 'desc')
             ->get();
 
         // Buat interval 4 jam
@@ -173,7 +173,7 @@ class MeterReadingController extends Controller
         }
 
         $readings = MeterReading::where('meter_id', $meter->id)
-            ->orderBy('reading_time')
+            ->orderBy('reading_time', 'desc')
             ->get();
 
         // Buat interval 4 jam
