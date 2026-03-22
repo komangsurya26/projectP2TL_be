@@ -14,9 +14,19 @@ class PelangganController extends Controller
         // Base query dengan join agar pencarian idpel atau meter_number cepat
         $query = Pelanggan::query()
             ->leftJoin('meters', 'pelanggans.idpel', '=', 'meters.idpel')
-            ->leftJoin('meter_analysis', 'meters.id', '=', 'meter_analysis.meter_id')
-            ->select('pelanggans.*')
-            ->distinct();
+            ->leftJoin('meter_analysis as ma', function ($join) {
+                $join->on('meters.id', '=', 'ma.meter_id')
+                    ->whereRaw('ma.analysis_date = (select max(ma2.analysis_date) from meter_analysis ma2 where ma2.meter_id = meters.id)');
+            })
+            ->select(
+                'pelanggans.*',
+                'meters.meter_number',
+                'meters.meter_type',
+                'meters.tariff',
+                'meters.power_capacity',
+                'ma.anomaly_status',
+                'ma.anomaly_score'
+            );
 
         // Filter idpel atau nomor meter
         if ($idpelOrMeter) {
@@ -35,31 +45,25 @@ class PelangganController extends Controller
         // Filter status anomaly
         if ($request->filled('status')) {
             $status = $request->status;
-            $query->where('meter_analysis.anomaly_status', $status);
+            $query->where('ma.anomaly_status', $status);
         }
 
         // Pagination
         $perPage = $request->query('per_page', 50);
         $pelanggan = $query->paginate($perPage);
 
-        // Ambil meters dan analysis via eager loading untuk mapping
-        $pelanggan->load(['meters.analysis']);
-
         $data = $pelanggan->map(function ($pelanggan) {
-            $meter = $pelanggan->meters->first();
-            $analysis = $meter?->analysis?->sortByDesc('analysis_date')->first();
-
             return [
                 'id' => $pelanggan->idpel,
                 'name' => $pelanggan->nama,
-                'tariff' => $meter ? $meter->tariff : null,
-                'power' => $meter ? $meter->power_capacity . ' VA' : null,
+                'tariff' => $pelanggan->tariff,
+                'power' => $pelanggan->power_capacity . ' VA',
                 'address' => $pelanggan->alamat,
                 'phone' => $pelanggan->notelp,
-                'meterType' => $meter ? strtolower($meter->meter_type) : null,
-                'meterNumber' => $meter ? $meter->meter_number : null,
-                'result' => $analysis->anomaly_status ?? 'UNKNOWN',
-                'risk_score' => $analysis->anomaly_score ?? '-',
+                'meterType' => strtolower($pelanggan->meter_type),
+                'meterNumber' => $pelanggan->meter_number,
+                'result' => $pelanggan->anomaly_status ?? 'UNKNOWN',
+                'risk_score' => $pelanggan->anomaly_score ?? '-',
             ];
         });
 
