@@ -1,8 +1,8 @@
 <?php
 return [
     'paths' => ['api/*'],
-    'allowed_methods' => ['*'],
-    'allowed_origins' => [env('APP_URL_FRONTEND')],
+    'allowed_methods' => ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE'],
+    'allowed_origins' => [env('APP_URL_FRONTEND', 'https://p2tlanalisa.web.id')],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
