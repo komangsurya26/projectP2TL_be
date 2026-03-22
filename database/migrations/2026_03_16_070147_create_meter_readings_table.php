@@ -35,6 +35,7 @@ return new class extends Migration
             $table->double('apparent_power')->nullable();
 
             $table->index(['meter_id', 'reading_time']);
+            $table->unique(['meter_id', 'reading_time']);
 
             $table->timestamps();
         });
