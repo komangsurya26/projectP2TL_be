@@ -60,7 +60,7 @@ class ProcessPrepaidAnalysis implements ShouldQueue
     private function detect($kwh)
     {
         if ($kwh <= 0) return 'LOW_CONSUMPTION';
-        if ($kwh > 300) return 'HIGH_TOPUP';
+        if ($kwh > 300) return 'ANOMALY';
         return 'NORMAL';
     }
 

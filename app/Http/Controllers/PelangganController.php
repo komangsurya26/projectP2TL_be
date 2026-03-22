@@ -47,7 +47,7 @@ class PelangganController extends Controller
 
         $data = $pelanggan->map(function ($pelanggan) {
             $meter = $pelanggan->meters->first();
-            $analysis = $meter?->analysis?->first();
+            $analysis = $meter?->analysis?->sortByDesc('analysis_date')->first();
 
             return [
                 'id' => $pelanggan->idpel,
@@ -58,8 +58,8 @@ class PelangganController extends Controller
                 'phone' => $pelanggan->notelp,
                 'meterType' => $meter ? strtolower($meter->meter_type) : null,
                 'meterNumber' => $meter ? $meter->meter_number : null,
-                'result' => $analysis?->anomaly_status ?? 'UNKNOWN',
-                'risk_score' => $analysis?->anomaly_score ?? '-',
+                'result' => $analysis->anomaly_status ?? 'UNKNOWN',
+                'risk_score' => $analysis->anomaly_score ?? '-',
             ];
         });
 

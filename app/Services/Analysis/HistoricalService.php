@@ -3,28 +3,29 @@
 namespace App\Services\Analysis;
 
 use App\Models\MeterAnalysis;
-use Carbon\Carbon;
 
 class HistoricalService
 {
-    public function getAverage($meterId, $date, $days)
+    public function getAverage($date, $days, $alias = 'avg')
     {
-        return MeterAnalysis::where('meter_id', $meterId)
+        return MeterAnalysis::selectRaw("meter_id, AVG(consumption_kwh) as {$alias}")
             ->whereBetween('analysis_date', [
-                Carbon::parse($date)->subDays($days),
-                Carbon::parse($date)->subDay()
+                now()->parse($date)->subDays($days),
+                now()->parse($date)->subDay()
             ])
-            ->avg('consumption_kwh');
+            ->groupBy('meter_id')
+            ->pluck($alias, 'meter_id');
     }
 
-    public function getZeroDays($meterId, $date, $days = 3)
+    public function getZeroDays($date, $days = 3)
     {
-        return MeterAnalysis::where('meter_id', $meterId)
+        return MeterAnalysis::selectRaw('meter_id, COUNT(*) as zero_days')
             ->whereBetween('analysis_date', [
                 now()->parse($date)->subDays($days),
                 now()->parse($date)->subDay()
             ])
             ->where('consumption_kwh', 0)
-            ->count();
+            ->groupBy('meter_id')
+            ->pluck('zero_days', 'meter_id');
     }
 }

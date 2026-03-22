@@ -19,7 +19,7 @@ class ProcessAmiAnalysis implements ShouldQueue
     protected $date;
     protected $batchSize;
 
-    public function __construct($date, $batchSize = 5000)
+    public function __construct($date, $batchSize = 50)
     {
         $this->date = $date;
         $this->batchSize = $batchSize; // batch per iterasi
@@ -31,23 +31,23 @@ class ProcessAmiAnalysis implements ShouldQueue
         $historical = new HistoricalService();
 
         // 1️⃣ Ambil semua meter + konsumsi hari ini
-        $meterReadings = MeterReading::selectRaw('meter_id, MAX(import_kwh) - MIN(import_kwh) as consumption_kwh')
+        $daily = MeterReading::selectRaw('meter_id, MAX(import_kwh) - MIN(import_kwh) as consumption_kwh')
             ->whereDate('reading_time', $this->date)
-            ->groupBy('meter_id')
-            ->get(); // ambil semua sekaligus (memory aman kalau jumlah meter wajar)
+            ->groupBy('meter_id');
+
+        $avg7 = $historical->getAverage($this->date, 7, 'avg7');
+        $avg30 = $historical->getAverage($this->date, 30, 'avg30');
+        $zeroDays = $historical->getZeroDays($this->date, 3);
 
         $batch = [];
-        foreach ($meterReadings as $row) {
-            $avg7 = $historical->getAverage($row->meter_id, $this->date, 7) ?? 0;
-            $avg30 = $historical->getAverage($row->meter_id, $this->date, 30) ?? 0;
-            $zeroDays = $historical->getZeroDays($row->meter_id, $this->date, 3) ?? 0;
+        foreach ($daily->cursor() as $row) {
 
             $result = $analyzer->analyze([
                 'meter_id' => $row->meter_id,
                 'consumption_kwh' => $row->consumption_kwh,
-                'avg_7_days' => $avg7,
-                'avg_30_days' => $avg30,
-                'zero_days_count' => $zeroDays,
+                'avg_7_days' => $avg7[$row->meter_id] ?? 0,
+                'avg_30_days' => $avg30[$row->meter_id] ?? 0,
+                'zero_days_count' => $zeroDays[$row->meter_id] ?? 0,
             ]);
 
             $status = $result['status'];
@@ -56,8 +56,8 @@ class ProcessAmiAnalysis implements ShouldQueue
                 'meter_id' => $row->meter_id,
                 'analysis_date' => $this->date,
                 'consumption_kwh' => $row->consumption_kwh,
-                'avg_7_days' => $avg7,
-                'avg_30_days' => $avg30,
+                'avg_7_days' => $avg7[$row->meter_id] ?? 0,
+                'avg_30_days' => $avg30[$row->meter_id] ?? 0,
                 'anomaly_status' => $status,
                 'anomaly_score' => $result['score'],
                 'flags' => json_encode($result['flags']),
@@ -84,7 +84,5 @@ class ProcessAmiAnalysis implements ShouldQueue
                 ['consumption_kwh', 'avg_7_days', 'avg_30_days', 'anomaly_status', 'anomaly_score', 'flags', 'analysis_method', 'updated_at']
             );
         }
-
-        \Log::info("Analysis done for date {$this->date}, total meters: " . count($meterReadings));
     }
 }
