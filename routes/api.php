@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\ImportController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\PrepaidTokenController;
 use App\Http\Controllers\TemplateController;
-use App\Http\Controllers\DILImportController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PelangganController;
 
@@ -13,7 +13,9 @@ Route::get('/download-template-ami', [TemplateController::class, 'download_ami']
 Route::get('/download-template-amr', [TemplateController::class, 'download_amr']);
 
 
-Route::post('/upload-dil', [DILImportController::class, 'upload']);
+Route::post('/upload-dil', [ImportController::class, 'uploadDil']);
+Route::post('/upload-ami', [ImportController::class, 'uploadAmi']);
+
 
 Route::get('/pelanggan', [PelangganController::class, 'get']);
 

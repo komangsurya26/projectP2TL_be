@@ -3,6 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\Pelanggan;
+use App\Models\Meters;
+use App\Helpers\NumberHelper;
+use App\Helpers\CsvHelper;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,33 +24,6 @@ class ProcessDILImportJob implements ShouldQueue
         $this->filePath = $filePath;
     }
 
-    private function safeFloat($value)
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        $value = str_replace(',', '.', $value);
-
-        return is_numeric($value) ? (float) $value : null;
-    }
-
-    private function detectDelimiter($filePath)
-    {
-        $delimiters = ["\t", ";", ","];
-        $counts = [];
-
-        $handle = fopen($filePath, "r");
-        $firstLine = fgets($handle);
-        fclose($handle);
-
-        foreach ($delimiters as $delimiter) {
-            $counts[$delimiter] = substr_count($firstLine, $delimiter);
-        }
-
-        return array_search(max($counts), $counts);
-    }
-
     public function handle()
     {
         if (!file_exists($this->filePath)) {
@@ -56,29 +32,19 @@ class ProcessDILImportJob implements ShouldQueue
         }
 
         $handle = fopen($this->filePath, 'r');
-
         if (!$handle) {
             Log::error("Tidak bisa membuka file: " . $this->filePath);
             return;
         }
 
-        // header manual sesuai urutan file DIL
-        $header = [
-            'idpel',
-            'nama',
-            'tarif',
-            'daya',
-            'nomor_meter_kwh',
-            'nomor_gardu',
-            'nama_up',
-            'unitup',
-            'koordinat_x',
-            'koordinat_y',
-            'notelp_hp',
-            'kdpembmeter'
-        ];
+        $delimiter = CsvHelper::detectDelimiter($this->filePath);
 
-        $delimiter = $this->detectDelimiter($this->filePath);
+        $fileHeader = fgetcsv($handle, 0, $delimiter);
+        if (!$fileHeader) {
+            Log::error("CSV kosong atau header tidak terbaca: " . $this->filePath);
+            fclose($handle);
+            return;
+        }
 
         $map = [
             'L' => 'AMI',
@@ -86,102 +52,99 @@ class ProcessDILImportJob implements ShouldQueue
             'A' => 'AMR'
         ];
 
-        $batch = [];
-        $chunkSize = 5000;
+        $pelangganBatch = [];
+        $meterBatch = [];
+        $chunkSize = 3000;
+        $seenIdpel = [];
 
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            if (empty($row)) continue;
 
-            if (empty($row)) {
-                continue;
-            }
+            $row = array_pad($row, count($fileHeader), null);
+            $row = array_slice($row, 0, count($fileHeader));
+            $row = array_combine($fileHeader, $row);
+            if (!$row) continue;
 
-            // samakan jumlah kolom
-            $row = array_pad($row, count($header), null);
+            $idpel = trim($row['IDPEL'] ?? '');
+            if (!$idpel || isset($seenIdpel[$idpel])) continue;
+            $seenIdpel[$idpel] = true;
 
-            if (count($row) > count($header)) {
-                $row = array_slice($row, 0, count($header));
-            }
-
-            $row = array_combine($header, $row);
-
-            if (!$row) {
-                continue;
-            }
-
-            $idpel = trim($row['idpel'] ?? '');
-
-            if (!$idpel) {
-                continue;
-            }
-
-            $kode = strtoupper(trim($row['kdpembmeter'] ?? ''));
+            $kode = strtoupper(trim($row['KDPEMBMETER'] ?? ''));
             $meterType = $map[$kode] ?? 'MANUAL';
 
-            $batch[] = [
+            // Nomor meter TEMP jika kosong
+            $rawMeterNumber = trim($row['NOMOR_METER_KWH'] ?? '');
+            if ($rawMeterNumber === '-') {
+                $rawMeterNumber = '';
+            }
+
+            $meterNumber = $rawMeterNumber ?: 'TEMP-' . $idpel;
+            $isTemporary = empty($rawMeterNumber);
+
+            $pelangganBatch[] = [
                 'idpel' => $idpel,
-                'nama' => trim($row['nama'] ?? ''),
-                'tarif' => $row['tarif'] ?? null,
-                'daya' => $this->safeFloat($row['daya'] ?? null),
-                'nometer' => trim($row['nomor_meter_kwh'] ?? ''),
-                'alamat' => $row['nama_up'] ?? null,
-                'unitup' => $row['unitup'] ?? null,
-                'koordinat_x' => $this->safeFloat($row['koordinat_x'] ?? null),
-                'koordinat_y' => $this->safeFloat($row['koordinat_y'] ?? null),
-                'notelp' => trim($row['notelp_hp'] ?? ''),
-                'jenis_meter' => $meterType
+                'nama' => trim($row['NAMA'] ?? ''),
+                'notelp' => trim($row['NOTELP_HP'] ?? ''),
+                'alamat' => $row['NAMA_UP'] ?? null,
+                'unitup' => $row['UNITUP'] ?? null,
+                'koordinat_x' => NumberHelper::safeFloat($row['KOORDINAT_X'] ?? null),
+                'koordinat_y' => NumberHelper::safeFloat($row['KOORDINAT_Y'] ?? null),
+                'created_at' => now(),
+                'updated_at' => now()
             ];
 
-            // insert batch
-            if (count($batch) >= $chunkSize) {
+            $meterBatch[$idpel] = [
+                'idpel' => $idpel,
+                'meter_number' => $meterNumber,
+                'meter_type' => $meterType,
+                'tariff' => $row['TARIF'] ?? null,
+                'power_capacity' => NumberHelper::safeFloat($row['DAYA'] ?? null),
+                'is_temporary' => $isTemporary,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
 
+            if (count($pelangganBatch) >= $chunkSize) {
+                // Upsert Pelanggan
                 Pelanggan::upsert(
-                    $batch,
+                    $pelangganBatch,
                     ['idpel'],
-                    [
-                        'nama',
-                        'tarif',
-                        'daya',
-                        'nometer',
-                        'alamat',
-                        'unitup',
-                        'koordinat_x',
-                        'koordinat_y',
-                        'notelp',
-                        'jenis_meter'
-                    ]
+                    ['nama', 'notelp', 'alamat', 'unitup', 'koordinat_x', 'koordinat_y', 'updated_at']
                 );
 
-                Log::info("Batch inserted: " . count($batch));
+                // Upsert Meters, pastikan is_temporary ikut update
+                Meters::upsert(
+                    array_values($meterBatch),
+                    ['idpel', 'meter_number'], // key unik: idpel + meter_number
+                    ['meter_type', 'tariff', 'power_capacity', 'is_temporary', 'updated_at']
+                );
 
-                $batch = [];
+                Log::info("Batch inserted: " . count($pelangganBatch));
+
+                $pelangganBatch = [];
+                $meterBatch = [];
             }
         }
 
-        // insert sisa batch
-        if (!empty($batch)) {
-
+        // Sisa batch terakhir
+        if (!empty($pelangganBatch)) {
             Pelanggan::upsert(
-                $batch,
+                $pelangganBatch,
                 ['idpel'],
-                [
-                    'nama',
-                    'tarif',
-                    'daya',
-                    'nometer',
-                    'alamat',
-                    'unitup',
-                    'koordinat_x',
-                    'koordinat_y',
-                    'notelp',
-                    'jenis_meter'
-                ]
+                ['nama', 'notelp', 'alamat', 'unitup', 'koordinat_x', 'koordinat_y', 'updated_at']
             );
 
-            Log::info("Final batch inserted: " . count($batch));
+            Meters::upsert(
+                array_values($meterBatch),
+                ['idpel', 'meter_number'],
+                ['meter_type', 'tariff', 'power_capacity', 'is_temporary', 'updated_at']
+            );
+
+            Log::info("Final batch inserted: " . count($pelangganBatch));
         }
 
         fclose($handle);
 
-        Log::info("Import selesai: " . $this->filePath);
+        Log::info("Import DIL selesai: " . $this->filePath);
     }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
-            $table->string('meter_number')->unique();
+            $table->string('meter_number');
 
             $table->enum('meter_type', [
                 'AMI',
@@ -31,6 +31,8 @@ return new class extends Migration
 
             $table->index(['idpel', 'meter_type']);
             $table->index(['idpel', 'meter_number']);
+
+            $table->unique(['idpel', 'meter_number']);
 
             $table->bigInteger('power_capacity')->nullable();
 

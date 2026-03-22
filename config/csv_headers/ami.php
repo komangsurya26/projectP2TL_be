@@ -1,0 +1,28 @@
+<?php
+return [
+    'TMNL_ASSET_NO',
+    'COMM_ADDR',
+    'CUSTOMER_NUMBER',
+    'FACTORY_NAME',
+    'U_ID',
+    'ULP',
+    'CREATE_DATE',
+    'DATA_TIME',
+    'VOL_R',
+    'VOL_S',
+    'VOL_T',
+    'CUR_R',
+    'CUR_S',
+    'CUR_T',
+    'IMPORT_ACTIVE_ENERGY_SEND',
+    'EXPORT_ACTIVE_ENERGY_RECEIVE',
+    'IMPORT_TOTAL_REACTIVE_ENERGY',
+    'EXPORT_TOTAL_REACTIVE_ENERGY',
+    'MM',
+    'PF',
+    'IM_AC_P',
+    'EXP_AC_P',
+    'ENERGY_REACTIVE_BILLING',
+    'CURRENT_NETRAL',
+    'APPARENT_POWER_SEND'
+];
