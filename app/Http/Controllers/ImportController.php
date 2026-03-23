@@ -24,6 +24,14 @@ class ImportController extends Controller
             ], 422);
         }
 
+        $allowedMimes = ['text/csv', 'text/plain', 'application/vnd.ms-excel'];
+        if (!in_array($file->getMimeType(), $allowedMimes) && !str_ends_with($file->getClientOriginalName(), '.csv')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'File harus berekstensi CSV atau TXT'
+            ], 422);
+        }
+
         $tempDir = 'temp';
         $tempFile = $tempDir . '/' . $file->getClientOriginalName() . ".part{$chunkIndex}";
         Storage::disk('local')->putFileAs($tempDir, $file, basename($tempFile));
