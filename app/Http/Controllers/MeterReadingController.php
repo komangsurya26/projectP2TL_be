@@ -249,11 +249,16 @@ class MeterReadingController extends Controller
         $data = $readings->map(function ($r) {
             // Ambil rata-rata voltage dan current
             $voltage = collect([$r->voltage_r, $r->voltage_s, $r->voltage_t])->filter()->avg();
+            $voltage = is_finite($voltage) ? round($voltage, 1) : 0;
+
             $current = collect([$r->current_r, $r->current_s, $r->current_t])->filter()->avg();
+            $current = is_finite($current) ? round($current, 2) : 0;
+
             $kvarh = 0;
-            if ($r->import_kwh && $r->power_factor) {
+            if ($r->import_kwh && $r->power_factor && $r->power_factor != 0) {
                 $kva = $r->import_kwh / $r->power_factor;
-                $kvarh = sqrt(pow($kva, 2) - pow($r->import_kwh, 2));
+                $diff = pow($kva, 2) - pow($r->import_kwh, 2);
+                $kvarh = $diff > 0 ? sqrt($diff) : 0;
             }
 
             return [
@@ -261,8 +266,8 @@ class MeterReadingController extends Controller
                 'kwh' => round($r->import_kwh ?? 0, 2),
                 'kvarh' => round($kvarh, 2),
                 'pf' => round($r->power_factor ?? 0, 2),
-                'voltage' => $voltage ? round($voltage, 1) : 0,
-                'current' => $current ? round($current, 2) : 0,
+                'voltage' => $voltage,
+                'current' => $current,
             ];
         });
 
