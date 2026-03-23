@@ -17,39 +17,59 @@ class ImportController extends Controller
         $chunkIndex = $request->input('chunkIndex');
         $totalChunks = $request->input('totalChunks');
 
-        $tempDir = storage_path('app/temp');
-        if (!file_exists($tempDir)) mkdir($tempDir, 0755, true);
+        if (!$file || !isset($chunkIndex) || !isset($totalChunks)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'File atau chunk info tidak tersedia'
+            ], 422);
+        }
 
-        $tempPath = $tempDir . '/' . $file->getClientOriginalName() . ".part{$chunkIndex}";
-        $file->move($tempDir, basename($tempPath));
+        $tempDir = 'temp';
+        $tempFile = $tempDir . '/' . $file->getClientOriginalName() . ".part{$chunkIndex}";
+        Storage::disk('local')->putFileAs($tempDir, $file, basename($tempFile));
 
-        // cek apakah semua chunk sudah ada
         $allChunksExist = true;
         for ($i = 0; $i < $totalChunks; $i++) {
-            if (!file_exists($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}")) {
+            if (!Storage::disk('local')->exists($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}")) {
                 $allChunksExist = false;
                 break;
             }
         }
 
         if (!$allChunksExist) {
-            // tunggu chunk lain
-            return response()->json(['status' => 'pending', 'message' => 'Menunggu chunk lain']);
+            return response()->json([
+                'status' => 'pending',
+                'message' => 'Menunggu chunk lain'
+            ]);
         }
 
-        // gabungkan semua chunk
-        $finalPath = storage_path('app/dil_uploads/' . $file->getClientOriginalName());
-        $out = fopen($finalPath, 'wb');
+        $finalPath = 'dil_uploads/' . $file->getClientOriginalName();
+        $out = fopen(Storage::disk('local')->path($finalPath), 'wb');
+
         for ($i = 0; $i < $totalChunks; $i++) {
-            $in = fopen($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}", 'rb');
+            $chunkPath = Storage::disk('local')->path($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}");
+            $in = fopen($chunkPath, 'rb');
             stream_copy_to_stream($in, $out);
             fclose($in);
-            unlink($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}");
+
+            Storage::disk('local')->delete($tempDir . '/' . $file->getClientOriginalName() . ".part{$i}");
         }
         fclose($out);
 
-        // dispatch background job
-        ProcessDILImportJob::dispatch($finalPath);
+        $handle = fopen(Storage::disk('local')->path($finalPath), 'r');
+        $headers = fgetcsv($handle, 0, ',');
+        fclose($handle);
+
+        $expectedHeaders = config('csv_headers.dil');
+        if ($headers !== $expectedHeaders) {
+            Storage::disk('local')->delete($finalPath);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Header CSV tidak sesuai'
+            ], 422);
+        }
+
+        ProcessDILImportJob::dispatch(Storage::disk('local')->path($finalPath));
 
         return response()->json([
             'status' => 'success',
