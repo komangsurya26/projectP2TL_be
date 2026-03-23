@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\ProcessAMIImportJob;
 use Illuminate\Http\Request;
 use App\Jobs\ProcessDILImportJob;
+use App\Models\UploadHistory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -62,6 +63,12 @@ class ImportController extends Controller
         }
         fclose($out);
 
+        $history = UploadHistory::create([
+            'filename' => $file->getClientOriginalName(),
+            'status' => 'pending',
+            'rows' => 0,
+        ]);
+
         $handle = fopen(Storage::disk('local')->path($finalPath), 'r');
         $headers = fgetcsv($handle, 0, ',');
         fclose($handle);
@@ -69,13 +76,16 @@ class ImportController extends Controller
         $expectedHeaders = config('csv_headers.dil');
         if ($headers !== $expectedHeaders) {
             Storage::disk('local')->delete($finalPath);
+            $history->update([
+                'status' => 'error',
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Header CSV tidak sesuai'
             ], 422);
         }
 
-        ProcessDILImportJob::dispatch(Storage::disk('local')->path($finalPath));
+        ProcessDILImportJob::dispatch(Storage::disk('local')->path($finalPath), $history->id);
 
         return response()->json([
             'status' => 'success',
@@ -138,16 +148,25 @@ class ImportController extends Controller
         $headers = fgetcsv($handle, 0, ',');
         fclose($handle);
 
+        $history = UploadHistory::create([
+            'filename' => $file->getClientOriginalName(),
+            'status' => 'pending',
+            'rows' => 0,
+        ]);
+
         $expectedHeaders = config('csv_headers.ami');
         if ($headers !== $expectedHeaders) {
             Storage::disk('local')->delete($finalPath);
+            $history->update([
+                'status' => 'error',
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Header CSV tidak sesuai dengan yang diharapkan'
             ], 422);
         }
 
-        ProcessAMIImportJob::dispatch(Storage::disk('local')->path($finalPath));
+        ProcessAMIImportJob::dispatch(Storage::disk('local')->path($finalPath), $history->id);
 
         return response()->json([
             'status' => 'success',
