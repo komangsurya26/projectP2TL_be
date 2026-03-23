@@ -7,6 +7,7 @@ use App\Http\Controllers\PrepaidTokenController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\UploadHistoryController;
 
 Route::get('/download-template-dil', [TemplateController::class, 'download_dil']);
 Route::get('/download-template-ami', [TemplateController::class, 'download_ami']);
@@ -18,6 +19,7 @@ Route::post('/upload-ami', [ImportController::class, 'uploadAmi']);
 
 
 Route::get('/pelanggan', [PelangganController::class, 'get']);
+Route::get('/upload-history', [UploadHistoryController::class, 'get']);
 
 //dil
 Route::get('/meters/{idPel}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
