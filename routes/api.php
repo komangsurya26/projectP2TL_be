@@ -19,12 +19,14 @@ Route::post('/upload-ami', [ImportController::class, 'uploadAmi']);
 
 Route::get('/pelanggan', [PelangganController::class, 'get']);
 
-Route::get('/meters/{meterNumber}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
-Route::get('/meters/{meterNumber}/monthly-usage', [PrepaidTokenController::class, 'getMonthlyUsage']);
-Route::get('/meters/{meterNumber}/token-trend', [PrepaidTokenController::class, 'getTokenTrend']);
+//dil
+Route::get('/meters/{idPel}/purchase-history', [PrepaidTokenController::class, 'getPurchaseHistory']);
+Route::get('/meters/{idPel}/monthly-usage', [PrepaidTokenController::class, 'getMonthlyUsage']);
+Route::get('/meters/{idPel}/token-trend', [PrepaidTokenController::class, 'getTokenTrend']);
 
-Route::get('/meters/{meterNumber}/ami-usage', [MeterReadingController::class, 'getMonthlyUsageAMI']);
-Route::get('/meters/{meterNumber}/ami-yearly-usage', [MeterReadingController::class, 'yearlyUsageAMI']);
-Route::get('/meters/{meterNumber}/voltage-trend', [MeterReadingController::class, 'voltageTrend']);
-Route::get('/meters/{meterNumber}/power-factor-trend', [MeterReadingController::class, 'powerFactorTrend']);
-Route::get('/meters/{meterNumber}/measurement-history', [MeterReadingController::class, 'measurementHistory']);
+//ami
+Route::get('/meters/{idPel}/ami-usage', [MeterReadingController::class, 'getMonthlyUsageAMI']);
+Route::get('/meters/{idPel}/ami-yearly-usage', [MeterReadingController::class, 'yearlyUsageAMI']);
+Route::get('/meters/{idPel}/voltage-trend', [MeterReadingController::class, 'voltageTrend']);
+Route::get('/meters/{idPel}/power-factor-trend', [MeterReadingController::class, 'powerFactorTrend']);
+Route::get('/meters/{idPel}/measurement-history', [MeterReadingController::class, 'measurementHistory']);

@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class MeterReadingController extends Controller
 {
-    public function getMonthlyUsageAMI($meterNumber)
+    public function getMonthlyUsageAMI($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -52,9 +52,9 @@ class MeterReadingController extends Controller
         ]);
     }
 
-    public function yearlyUsageAMI($meterNumber)
+    public function yearlyUsageAMI($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -86,9 +86,9 @@ class MeterReadingController extends Controller
         ]);
     }
 
-    public function voltageTrend($meterNumber)
+    public function voltageTrend($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -161,9 +161,9 @@ class MeterReadingController extends Controller
         ]);
     }
 
-    public function powerFactorTrend($meterNumber)
+    public function powerFactorTrend($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -230,9 +230,9 @@ class MeterReadingController extends Controller
         ]);
     }
 
-    public function measurementHistory($meterNumber)
+    public function measurementHistory($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([

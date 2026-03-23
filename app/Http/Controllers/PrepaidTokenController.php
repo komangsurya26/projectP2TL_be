@@ -18,9 +18,9 @@ class PrepaidTokenController extends Controller
     {
         return 'Rp ' . number_format($amount, 0, ',', '.');
     }
-    public function getPurchaseHistory($meterNumber)
+    public function getPurchaseHistory($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -46,9 +46,9 @@ class PrepaidTokenController extends Controller
         ]);
     }
 
-    public function getMonthlyUsage($meterNumber)
+    public function getMonthlyUsage($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
@@ -93,9 +93,9 @@ class PrepaidTokenController extends Controller
         ]);
     }
 
-    public function getTokenTrend($meterNumber)
+    public function getTokenTrend($idPel)
     {
-        $meter = Meters::where('meter_number', $meterNumber)->first();
+        $meter = Meters::where('idpel', $idPel)->first();
 
         if (!$meter) {
             return response()->json([
