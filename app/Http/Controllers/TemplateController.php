@@ -2,34 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\TemplateDILExport;
-use App\Exports\TemplateAMIExport;
-use App\Exports\TemplateAMRExport;
-
 class TemplateController extends Controller
 {
-    public function download_dil()
+    public function downloadDil()
     {
-        return Excel::download(
-            new TemplateDILExport,
-            'Template_DIL.xlsx'
-        );
+        $filename = 'DIL_Template.csv';
+        $headers = config('csv_headers.dil');
+
+        $callback = function () use ($headers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
-    public function download_ami()
+    public function downloadAmi()
     {
-        return Excel::download(
-            new TemplateAMIExport,
-            'Template_TO_AMI.xlsx'
-        );
-    }
+        $filename = 'AMI_Template.csv';
+        $headers = config('csv_headers.ami');
 
-    public function download_amr()
-    {
-        return Excel::download(
-            new TemplateAMRExport,
-            'Template_TO_AMR.xlsx'
-        );
+        $callback = function () use ($headers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 }

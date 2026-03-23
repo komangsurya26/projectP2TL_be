@@ -9,9 +9,8 @@ use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\UploadHistoryController;
 
-Route::get('/download-template-dil', [TemplateController::class, 'download_dil']);
-Route::get('/download-template-ami', [TemplateController::class, 'download_ami']);
-Route::get('/download-template-amr', [TemplateController::class, 'download_amr']);
+Route::get('/template-dil', [TemplateController::class, 'downloadDil']);
+Route::get('/template-ami', [TemplateController::class, 'downloadAmi']);
 
 
 Route::post('/upload-dil', [ImportController::class, 'uploadDil']);
