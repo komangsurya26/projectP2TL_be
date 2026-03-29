@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Services\Job\DILImportService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Services\Job\EPMImportService;
 
-class ProcessDILImportJob implements ShouldQueue
+class ProcessEPMImportJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -24,7 +24,7 @@ class ProcessDILImportJob implements ShouldQueue
 
     public function handle()
     {
-        app(DILImportService::class)
+        app(EPMImportService::class)
             ->process($this->filePath, $this->historyId);
     }
 }

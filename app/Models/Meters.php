@@ -13,7 +13,6 @@ class Meters extends Model
 
     protected $fillable = [
         'idpel',
-        'meter_number',
         'meter_type',
         'tariff',
         'power_capacity'

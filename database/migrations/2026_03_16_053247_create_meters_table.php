@@ -18,8 +18,6 @@ return new class extends Migration
             $table->string('idpel');
             $table->foreign('idpel')->references('idpel')->on('pelanggans')->cascadeOnDelete();
 
-            $table->string('meter_number');
-
             $table->enum('meter_type', [
                 'AMI',
                 'AMR',
@@ -28,13 +26,12 @@ return new class extends Migration
             ]);
 
             $table->string('tariff')->nullable();
+            $table->bigInteger('power_capacity')->nullable();
 
             $table->index(['idpel', 'meter_type']);
-            $table->index(['idpel', 'meter_number']);
 
-            $table->unique(['idpel', 'meter_number']);
+            $table->unique(['idpel']);
 
-            $table->bigInteger('power_capacity')->nullable();
 
             $table->timestamps();
         });

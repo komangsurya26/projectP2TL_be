@@ -24,8 +24,8 @@ return new class extends Migration
 
             $table->text('unitup')->nullable();
 
-            $table->double('koordinat_x')->nullable();
-            $table->double('koordinat_y')->nullable();
+            $table->decimal('latitude', 8, 6)->nullable();
+            $table->decimal('longitude', 9, 6)->nullable();
 
             $table->index('idpel');
 

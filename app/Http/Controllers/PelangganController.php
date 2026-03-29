@@ -9,31 +9,27 @@ class PelangganController extends Controller
 {
     public function get(Request $request)
     {
-        $idpelOrMeter = $request->input('idpel');
+        $idpel = $request->input('idpel');
 
         // Base query dengan join agar pencarian idpel atau meter_number cepat
         $query = Pelanggan::query()
             ->leftJoin('meters', 'pelanggans.idpel', '=', 'meters.idpel')
-            ->leftJoin('meter_analysis as ma', function ($join) {
-                $join->on('meters.id', '=', 'ma.meter_id')
-                    ->whereRaw('ma.analysis_date = (select max(ma2.analysis_date) from meter_analysis ma2 where ma2.meter_id = meters.id)');
-            })
+            // ->leftJoin('meter_analysis as ma', function ($join) {
+            //     $join->on('meters.id', '=', 'ma.meter_id')
+            //         ->whereRaw('ma.analysis_date = (select max(ma2.analysis_date) from meter_analysis ma2 where ma2.meter_id = meters.id)');
+            // })
             ->select(
                 'pelanggans.*',
-                'meters.meter_number',
                 'meters.meter_type',
                 'meters.tariff',
                 'meters.power_capacity',
-                'ma.anomaly_status',
-                'ma.anomaly_score'
+                // 'ma.anomaly_status',
+                // 'ma.anomaly_score'
             );
 
         // Filter idpel atau nomor meter
-        if ($idpelOrMeter) {
-            $query->where(function ($q) use ($idpelOrMeter) {
-                $q->where('pelanggans.idpel', $idpelOrMeter)
-                    ->orWhere('meters.meter_number', $idpelOrMeter);
-            });
+        if ($idpel) {
+            $query->where('pelanggans.idpel', $idpel);
         }
 
         // Filter jenis meter
@@ -43,10 +39,10 @@ class PelangganController extends Controller
         }
 
         // Filter status anomaly
-        if ($request->filled('status')) {
-            $status = $request->status;
-            $query->where('ma.anomaly_status', $status);
-        }
+        // if ($request->filled('status')) {
+        //     $status = $request->status;
+        //     $query->where('ma.anomaly_status', $status);
+        // }
 
         // Pagination
         $perPage = $request->query('per_page', 50);
@@ -59,9 +55,8 @@ class PelangganController extends Controller
                 'tariff' => $pelanggan->tariff,
                 'power' => $pelanggan->power_capacity . ' VA',
                 'address' => $pelanggan->alamat,
-                'phone' => $pelanggan->notelp,
+                'phone' => $pelanggan->notelp ?? '-',
                 'meterType' => strtolower($pelanggan->meter_type),
-                'meterNumber' => $pelanggan->meter_number,
                 'result' => $pelanggan->anomaly_status ?? 'UNKNOWN',
                 'risk_score' => $pelanggan->anomaly_score ?? '-',
             ];

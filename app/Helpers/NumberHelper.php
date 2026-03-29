@@ -10,8 +10,12 @@ class NumberHelper
 
         $value = trim($value);
 
-        $value = str_replace('.', '', $value);
-        $value = str_replace(',', '.', $value);
+        if (strpos($value, ',') !== false && strpos($value, '.') !== false) {
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        } else {
+            $value = str_replace(',', '.', $value);
+        }
 
         return is_numeric($value) ? (float) $value : null;
     }

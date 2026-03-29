@@ -8,7 +8,7 @@ class UploadHistoryController extends Controller
 {
     public function get()
     {
-        $histories = UploadHistory::orderBy('created_at', 'desc')
+        $histories = UploadHistory::with('user:id,name')->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
             ->map(function ($item) {
@@ -17,6 +17,7 @@ class UploadHistoryController extends Controller
                     'date' => $item->created_at->format('Y-m-d'),
                     'status' => $item->status,
                     'rows' => $item->rows,
+                    'uploaded_by' => $item->user->name ?? '-',
                 ];
             });
 

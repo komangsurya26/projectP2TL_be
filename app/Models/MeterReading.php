@@ -12,16 +12,24 @@ class MeterReading extends Model
     protected $fillable = [
         'meter_id',
         'reading_time',
+
         'import_kwh',
         'export_kwh',
+        'kwh_total',
+        'kvarh_total',
+
         'voltage_r',
         'voltage_s',
         'voltage_t',
         'current_r',
         'current_s',
         'current_t',
+
+        'power_kw',
+        'apparent_power',
         'power_factor',
-        'apparent_power'
+
+        'source',
     ];
 
     public function meter()

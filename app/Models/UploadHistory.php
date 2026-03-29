@@ -12,5 +12,11 @@ class UploadHistory extends Model
         'filename',
         'status',
         'rows',
+        'uploaded_by',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
 }

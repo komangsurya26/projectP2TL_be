@@ -19,23 +19,31 @@ return new class extends Migration
 
             $table->timestamp('reading_time');
 
-            $table->double('voltage_r')->nullable();
-            $table->double('voltage_s')->nullable();
-            $table->double('voltage_t')->nullable();
+            $table->decimal('voltage_r', 10, 3)->nullable();
+            $table->decimal('voltage_s', 10, 3)->nullable();
+            $table->decimal('voltage_t', 10, 3)->nullable();
 
-            $table->double('current_r')->nullable();
-            $table->double('current_s')->nullable();
-            $table->double('current_t')->nullable();
+            $table->decimal('current_r', 10, 3)->nullable();
+            $table->decimal('current_s', 10, 3)->nullable();
+            $table->decimal('current_t', 10, 3)->nullable();
 
-            $table->double('import_kwh')->nullable();
-            $table->double('export_kwh')->nullable();
+            $table->decimal('import_kwh', 18, 3)->nullable();
+            $table->decimal('export_kwh', 18, 3)->nullable();
 
-            $table->double('power_factor')->nullable();
+            $table->decimal('kwh_total', 18, 3)->nullable();
+            $table->decimal('kvarh_total', 18, 3)->nullable();
 
-            $table->double('apparent_power')->nullable();
+            $table->decimal('power_kw', 18, 3)->nullable();
+            $table->decimal('apparent_power', 18, 3)->nullable();
+
+            $table->decimal('power_factor', 8, 5)->nullable();
+
+            $table->string('source'); // AMI / AMR / MANUAL
 
             $table->index(['meter_id', 'reading_time']);
-            $table->unique(['meter_id', 'reading_time']);
+            $table->index('source');
+
+            $table->unique(['meter_id', 'reading_time', 'source']);
 
             $table->timestamps();
         });

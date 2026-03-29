@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('filename');
             $table->enum('status', ['pending', 'success', 'error']);
             $table->integer('rows')->default(0);
+            $table->string('uploaded_by');
             $table->timestamps();
         });
     }

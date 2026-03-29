@@ -12,8 +12,8 @@ class Pelanggan extends Model
         'notelp',
         'alamat',
         'unitup',
-        'koordinat_x',
-        'koordinat_y'
+        'longitude',
+        'latitude'
     ];
 
     public function meters()
