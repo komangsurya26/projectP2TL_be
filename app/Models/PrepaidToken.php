@@ -11,7 +11,8 @@ class PrepaidToken extends Model
         'token_number',
         'purchase_date',
         'kwh_purchased',
-        'amount_paid'
+        'amount_paid',
+        'source'
     ];
 
     public function meter()

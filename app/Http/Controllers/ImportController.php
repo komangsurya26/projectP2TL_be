@@ -11,6 +11,7 @@ use App\Jobs\ProcessDILImportJob;
 use App\Jobs\ProcessAMIImportJob;
 use App\Jobs\ProcessAMRImportJob;
 use App\Jobs\ProcessEPMImportJob;
+use App\Jobs\ProcessPrabayarImportJob;
 use Illuminate\Support\Facades\Auth;
 
 class ImportController extends Controller
@@ -63,6 +64,18 @@ class ImportController extends Controller
         );
     }
 
+    public function uploadPrabayar(Request $request)
+    {
+        $userId = Auth::user()->id;
+        return $this->handleChunkUpload(
+            $request,
+            'prabayar_uploads',
+            'csv_headers.prabayar',
+            ProcessPrabayarImportJob::class,
+            $userId
+        );
+    }
+
     /**
      * Generic handler untuk semua upload CSV chunk
      */
@@ -73,7 +86,7 @@ class ImportController extends Controller
         string $jobClass,
         string $userId
     ) {
-        // ✅ Validation
+        // Validation
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:csv,txt',
             'chunkIndex' => 'required|integer|min:0',
@@ -94,15 +107,15 @@ class ImportController extends Controller
         $tempDir = 'temp';
         $originalName = $file->getClientOriginalName();
 
-        // ✅ Hindari tabrakan nama file
+        // Hindari tabrakan nama file
         $fileHash = md5($originalName . $totalChunks);
         $fileName = "{$fileHash}_{$originalName}";
 
-        // ✅ Simpan chunk
+        // Simpan chunk
         $chunkPath = "{$tempDir}/{$fileName}.part{$chunkIndex}";
         Storage::disk('local')->putFileAs($tempDir, $file, basename($chunkPath));
 
-        // ✅ Cek apakah semua chunk sudah ada
+        // Cek apakah semua chunk sudah ada
         for ($i = 0; $i < $totalChunks; $i++) {
             if (!Storage::disk('local')->exists("{$tempDir}/{$fileName}.part{$i}")) {
                 return response()->json([
@@ -112,7 +125,7 @@ class ImportController extends Controller
             }
         }
 
-        // ✅ Gabungkan file
+        // Gabungkan file
         $finalPath = "{$uploadDir}/{$fileName}";
         $fullFinalPath = Storage::disk('local')->path($finalPath);
 
@@ -135,7 +148,7 @@ class ImportController extends Controller
 
         fclose($out);
 
-        // ✅ Simpan history
+        // Simpan history
         $history = UploadHistory::create([
             'filename' => $originalName,
             'status' => 'pending',
@@ -143,11 +156,16 @@ class ImportController extends Controller
             'uploaded_by' => $userId,
         ]);
 
-        // ✅ Validasi header CSV
+        // Validasi header CSV
         $handle = fopen($fullFinalPath, 'r');
         $delimiter = CsvHelper::detectDelimiter($fullFinalPath);
         $headers = fgetcsv($handle, 0, $delimiter);
         fclose($handle);
+
+        // remove BOM di header
+        $headers = array_map(function ($h) {
+            return preg_replace('/^\x{FEFF}/u', '', $h);
+        }, $headers);
 
         $expectedHeaders = config($headerConfig);
 
@@ -166,7 +184,7 @@ class ImportController extends Controller
             ], 422);
         }
 
-        // ✅ Dispatch job (dynamic)
+        // Dispatch job (dynamic)
         $jobClass::dispatch($fullFinalPath, $history->id);
 
         return response()->json([

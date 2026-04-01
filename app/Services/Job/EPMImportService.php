@@ -7,8 +7,11 @@ use App\Helpers\CsvHelper;
 use App\Helpers\DateHelper;
 use App\Helpers\NumberHelper;
 use App\Models\Inspection;
+use App\Models\InspectionLocations;
+use App\Models\InspectionMeasurements;
 use App\Models\Meters;
 use App\Models\UploadHistory;
+use Carbon\Carbon;
 
 class EPMImportService
 {
@@ -85,36 +88,134 @@ class EPMImportService
         if (!$inspectionTime) return null;
 
         return [
-            'meter_id'        => $meterId,
-            'inspection_time' => $inspectionTime,
-            'stand_lwbp'      => NumberHelper::safeFloat($row['STAND_LWBP'] ?? null),
-            'stand_wbp'       => NumberHelper::safeFloat($row['STAND_WBP'] ?? null),
-            'stand_kvarh'     => NumberHelper::safeFloat($row['STAND_KVARH'] ?? null),
-            'officer_name'    => $row['NAMA_PETUGAS'] ?? null,
-            'notes'           => $row['CATATAN'] ?? null,
-            'source'          => 'EPM',
+            'inspection' => [
+                'meter_id'        => $meterId,
+                'inspection_time' => $inspectionTime,
 
-            'created_at'      => now(),
-            'updated_at'      => now(),
+                'stand_lwbp'  => NumberHelper::safeFloat($row['STAND_LWBP'] ?? null),
+                'stand_wbp'   => NumberHelper::safeFloat($row['STAND_WBP'] ?? null),
+                'stand_kvarh' => NumberHelper::safeFloat($row['STAND_KVARH'] ?? null),
+
+                'status_kwh'  => $row['STATUS_KWH'] ?? null,
+                'kode_pesan'  => $row['KODE_PESAN'] ?? null,
+                'pemutusan'   => $row['PEMUTUSAN'] ?? null,
+                'rupiah_ts'   => NumberHelper::safeFloat($row['RUPIAH_TS'] ?? null),
+
+                'officer_name' => $row['NAMA_PETUGAS'] ?? null,
+                'notes'        => $row['CATATAN'] ?? null,
+                'source'       => 'EPM',
+
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            'measurement' => [
+                'voltage_r' => NumberHelper::safeFloat($row['TEGANGAN_R_N'] ?? null),
+                'voltage_s' => NumberHelper::safeFloat($row['TEGANGAN_S_N'] ?? null),
+                'voltage_t' => NumberHelper::safeFloat($row['TEGANGAN_T_N'] ?? null),
+
+                'current_r' => NumberHelper::safeFloat($row['ARUS_METER'] ?? null),
+                'current_s' => null,
+                'current_t' => null,
+
+                'power_factor' => NumberHelper::safeFloat($row['COS_BEBAN_R'] ?? null),
+                'deviasi'      => NumberHelper::safeFloat($row['DEVIASI'] ?? null),
+                'faktor_kali'  => NumberHelper::safeFloat($row['FAKTOR_KALI_KWH'] ?? null),
+            ],
+
+            'location' => [
+                'latitude'  => NumberHelper::safeFloat($row['LATITUDE'] ?? null),
+                'longitude' => NumberHelper::safeFloat($row['LONGITUDE'] ?? null),
+                'gardu'     => $row['GARDU'] ?? null,
+                'tiang'     => $row['TIANG'] ?? null,
+            ]
         ];
     }
 
     private function flushBatch(&$batch)
     {
-        $batch = collect($batch)
-            ->keyBy(fn($item) => $item['meter_id'] . '|' . $item['inspection_time'])
+        $inspectionData = collect($batch)
+            ->keyBy(fn($item) => $item['inspection']['meter_id'] . '|' .
+                Carbon::parse($item['inspection']['inspection_time'])->format('Y-m-d H:i:s'))
+            ->pluck('inspection')
             ->values()
             ->all();
-            
+
         Inspection::upsert(
-            $batch,
+            $inspectionData,
             ['meter_id', 'inspection_time'],
             [
                 'stand_lwbp',
                 'stand_wbp',
                 'stand_kvarh',
+                'status_kwh',
+                'kode_pesan',
+                'pemutusan',
+                'rupiah_ts',
                 'officer_name',
                 'notes',
+                'updated_at'
+            ]
+        );
+
+        $meterIds = collect($inspectionData)->pluck('meter_id')->unique();
+        $times = collect($inspectionData)->pluck('inspection_time')->unique();
+
+        $inspections = Inspection::whereIn('meter_id', $meterIds)
+            ->whereIn('inspection_time', $times)
+            ->get()
+            ->keyBy(fn($i) => $i->meter_id . '|' . $i->inspection_time);
+
+        $measurementBatch = [];
+        $locationBatch = [];
+
+        foreach ($batch as $item) {
+            $key = $item['inspection']['meter_id'] . '|' . $item['inspection']['inspection_time'];
+
+            if (!isset($inspections[$key])) continue;
+
+            $inspectionId = $inspections[$key]->id;
+
+            $measurementBatch[$inspectionId] = [
+                ...$item['measurement'],
+                'inspection_id' => $inspectionId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $locationBatch[$inspectionId] = [
+                ...$item['location'],
+                'inspection_id' => $inspectionId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        InspectionMeasurements::upsert(
+            array_values($measurementBatch),
+            ['inspection_id'],
+            [
+                'voltage_r',
+                'voltage_s',
+                'voltage_t',
+                'current_r',
+                'current_s',
+                'current_t',
+                'power_factor',
+                'deviasi',
+                'faktor_kali',
+                'updated_at'
+            ]
+        );
+
+        InspectionLocations::upsert(
+            array_values($locationBatch),
+            ['inspection_id'],
+            [
+                'latitude',
+                'longitude',
+                'gardu',
+                'tiang',
                 'updated_at'
             ]
         );

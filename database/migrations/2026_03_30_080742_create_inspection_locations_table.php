@@ -11,28 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pelanggans', function (Blueprint $table) {
-
+        Schema::create('inspection_locations', function (Blueprint $table) {
             $table->id();
-
-            $table->string('idpel')->unique();
-
-            $table->text('nama')->nullable();
-            $table->text('notelp')->nullable();
-
-            $table->text('alamat')->nullable();
-
-            $table->text('unitup')->nullable();
-
-            // $table->decimal('latitude', 8, 6)->nullable();
-            // $table->decimal('longitude', 9, 6)->nullable();
+            $table->foreignId('inspection_id')->constrained('inspections');
 
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();
-
-            $table->index('idpel');
+            $table->string('gardu')->nullable();
+            $table->string('tiang')->nullable();
 
             $table->timestamps();
+
+            $table->index('inspection_id');
+            $table->unique('inspection_id');
         });
     }
 
@@ -41,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pelanggans');
+        Schema::dropIfExists('inspection_locations');
     }
 };

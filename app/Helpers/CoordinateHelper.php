@@ -14,8 +14,8 @@ class CoordinateHelper
         $value = str_replace('-', '', $value);
 
         $beforeDot = substr($value, 0, 1);    // 1 digit sebelum titik
-        $afterDot  = substr($value, 1, 6);    // 6 digit desimal
-        $afterDot = str_pad($afterDot, 6, '0');
+        $afterDot  = substr($value, 1, 7);    // 7 digit desimal
+        $afterDot = str_pad($afterDot, 7, '0');
 
         return $isNegative ? -(float)($beforeDot . '.' . $afterDot) : (float)($beforeDot . '.' . $afterDot);
     }
@@ -29,8 +29,8 @@ class CoordinateHelper
         $value = str_replace('-', '', $value);
 
         $beforeDot = substr($value, 0, 3);    // 3 digit sebelum titik
-        $afterDot  = substr($value, 3, 6);    // 6 digit desimal
-        $afterDot = str_pad($afterDot, 6, '0');
+        $afterDot  = substr($value, 3, 7);    // 7 digit desimal
+        $afterDot = str_pad($afterDot, 7, '0');
 
         return $isNegative ? -(float)($beforeDot . '.' . $afterDot) : (float)($beforeDot . '.' . $afterDot);
     }

@@ -21,10 +21,15 @@ return new class extends Migration
             $table->decimal('stand_wbp', 14, 2)->nullable();
             $table->decimal('stand_kvarh', 14, 2)->nullable();
 
+            $table->string('status_kwh')->nullable();
+            $table->string('kode_pesan')->nullable();
+            $table->string('pemutusan')->nullable();
+            $table->decimal('rupiah_ts', 18, 2)->nullable();
+
             $table->string('officer_name')->nullable();
             $table->text('notes')->nullable();
-
             $table->string('source')->default('EPM'); //EPM
+
             $table->timestamps();
 
             $table->index(['meter_id', 'inspection_time']);

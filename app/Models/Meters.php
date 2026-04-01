@@ -29,11 +29,6 @@ class Meters extends Model
         return $this->hasMany(MeterReading::class, 'meter_id', 'id');
     }
 
-    public function prepaidAccount()
-    {
-        return $this->hasOne(PrepaidAccount::class, 'meter_id', 'id');
-    }
-
     public function prepaidTokens()
     {
         return $this->hasMany(PrepaidToken::class, 'meter_id', 'id');

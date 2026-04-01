@@ -11,12 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('prepaid_accounts', function (Blueprint $table) {
+        Schema::create('prepaid_tokens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('meter_id')->constrained('meters')->cascadeOnDelete();
-            $table->double('balance_kwh')->default(0);
+            $table->string('token_number', 32)->unique();
+            $table->date('purchase_date');
+            $table->decimal('kwh_purchased', 10, 3)->nullable();
+            $table->decimal('amount_paid', 18, 2)->nullable();
+            $table->string('source')->default('PREPAID');
+
+            $table->index(['meter_id', 'purchase_date']);
+
             $table->timestamps();
-            $table->unique('meter_id');
         });
     }
 
@@ -25,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('prepaid_accounts');
+        Schema::dropIfExists('prepaid_tokens');
     }
 };

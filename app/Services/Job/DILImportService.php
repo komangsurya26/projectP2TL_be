@@ -95,7 +95,7 @@ class DILImportService
         $kode = strtoupper(trim($row['KDPEMBMETER'] ?? ''));
         $meterType = $map[$kode] ?? 'MANUAL';
 
-        // normalize coordinate
+        // menukar jika koordinat x < 0 dari data csv
         $x = $row['KOORDINAT_X'] ?? null;
         $y = $row['KOORDINAT_Y'] ?? null;
         $x = $x !== null ? strval($x) : null;
