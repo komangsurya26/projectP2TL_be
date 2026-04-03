@@ -12,7 +12,10 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!$token = Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
         }
 
         $cookie = cookie(
@@ -36,6 +39,7 @@ class AuthController extends Controller
     {
         $cookie = cookie('jwt_token', '', -1, '/');
         return response()->json([
+            'status' => 'success',
             'message' => 'Logged out'
         ], 200)->withCookie($cookie);
     }
@@ -43,6 +47,7 @@ class AuthController extends Controller
     public function me()
     {
         return response()->json([
+            'status' => 'success',
             'user' => Auth::user(),
         ], 200);
     }

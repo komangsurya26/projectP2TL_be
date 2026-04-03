@@ -12,13 +12,19 @@ class CheckJwtCookie
         $token = $request->cookie('jwt_token');
 
         if (!$token) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthenticated'
+            ], 401);
         }
 
         try {
             JWTAuth::setToken($token)->authenticate();
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid token'
+            ], 401);
         }
 
         return $next($request);
