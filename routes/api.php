@@ -20,6 +20,7 @@ Route::middleware('jwt.cookie')->group(function () {
     Route::post('/upload-amr', [ImportController::class, 'uploadAmr']);
     Route::post('/upload-epm', [ImportController::class, 'uploadEPM']);
     Route::post('/upload-prabayar', [ImportController::class, 'uploadPrabayar']);
+    Route::post('/upload-sorek', [ImportController::class, 'uploadSorek']);
 });
 
 Route::get('/template-dil', [TemplateController::class, 'downloadDil']);

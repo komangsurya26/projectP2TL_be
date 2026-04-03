@@ -12,6 +12,7 @@ use App\Jobs\ProcessAMIImportJob;
 use App\Jobs\ProcessAMRImportJob;
 use App\Jobs\ProcessEPMImportJob;
 use App\Jobs\ProcessPrabayarImportJob;
+use App\Jobs\ProcessSorekImportJob;
 use Illuminate\Support\Facades\Auth;
 
 class ImportController extends Controller
@@ -72,6 +73,18 @@ class ImportController extends Controller
             'prabayar_uploads',
             'csv_headers.prabayar',
             ProcessPrabayarImportJob::class,
+            $userId
+        );
+    }
+
+    public function uploadSorek(Request $request)
+    {
+        $userId = Auth::user()->id;
+        return $this->handleChunkUpload(
+            $request,
+            'sorek_uploads',
+            'csv_headers.sorek',
+            ProcessSorekImportJob::class,
             $userId
         );
     }
