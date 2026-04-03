@@ -32,12 +32,12 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => Auth::user()
-        ])->withCookie($cookie);
+        ], 200)->withCookie($cookie);
     }
 
     public function logout()
     {
-        $cookie = cookie('jwt_token', '', -1, '/');
+        $cookie = cookie('jwt_token', null, -1, '/', env('JWT_COOKIE_DOMAIN'), env('JWT_COOKIE_SECURE'), true, false, env('JWT_COOKIE_SAMESITE'));
         return response()->json([
             'status' => 'success',
             'message' => 'Logged out'
