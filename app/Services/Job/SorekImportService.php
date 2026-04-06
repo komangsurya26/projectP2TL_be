@@ -33,11 +33,11 @@ class SorekImportService
             }
 
             $this->processRows($handle, $fileHeader, $delimiter, $historyId, $filePath);
-
-            fclose($handle);
         } catch (\Exception $e) {
             Log::error("Error proses import: " . $e->getMessage());
             $this->updateHistory($historyId, 0, 'error');
+        } finally {
+            if ($handle) fclose($handle);
         }
     }
 
@@ -86,8 +86,11 @@ class SorekImportService
         $month = (int) substr($periode, 4, 2);
         $year = (int) substr($periode, 0, 4);
 
-        $kwhTotal = NumberHelper::safeFloat($row['PEMKWH'] ?? 0);
-        $tagihan = NumberHelper::safeFloat($row['RPTAG'] ?? 0);
+        $kwhTotal = NumberHelper::safeFloat($row['PEMKWH'] ?? null);
+        $tagihan = NumberHelper::safeFloat($row['RPTAG'] ?? null);
+
+        $kvarh = NumberHelper::safeFloat($row['RPKVARH'] ?? null)
+            ?? 0;
 
         return [
             'meter_id' => $meterId,
@@ -96,19 +99,19 @@ class SorekImportService
             'month' => $month,
             'year' => $year,
 
-            'kwh_lwbp' => NumberHelper::safeFloat($row['KWHLWBP'] ?? 0),
-            'kwh_wbp' => NumberHelper::safeFloat($row['KWHWBP'] ?? 0),
+            'kwh_lwbp' => NumberHelper::safeFloat($row['KWHLWBP'] ?? null),
+            'kwh_wbp' => NumberHelper::safeFloat($row['KWHWBP'] ?? null),
             'kwh_total' => $kwhTotal,
-            'kvarh' => NumberHelper::safeFloat($row['KVARH'] ?? 0),
+            'kvarh' => $kvarh,
 
-            'rpptl' => NumberHelper::safeFloat($row['RPPTL'] ?? 0),
-            'rpppn' => NumberHelper::safeFloat($row['RPPPN'] ?? 0),
-            'rpbpju' => NumberHelper::safeFloat($row['RPBPJU'] ?? 0),
+            'rpptl' => NumberHelper::safeFloat($row['RPPTL'] ?? null),
+            'rpppn' => NumberHelper::safeFloat($row['RPPPN'] ?? null),
+            'rpbpju' => NumberHelper::safeFloat($row['RPBPJU'] ?? null),
             'tagihan' => $tagihan,
 
             'status' => $row['DLPD'] ?? null,
 
-            'cost_per_kwh' => $kwhTotal > 0
+            'cost_per_kwh' => ($kwhTotal > 0 && $tagihan !== null)
                 ? $tagihan / $kwhTotal
                 : null,
 
@@ -120,6 +123,7 @@ class SorekImportService
     private function flushBatch(&$batch)
     {
         $data = collect($batch)
+            ->filter(fn($item) => $item['meter_id'] && $item['periode'])
             ->keyBy(fn($item) => $item['meter_id'] . '|' . $item['periode'])
             ->values()
             ->all();

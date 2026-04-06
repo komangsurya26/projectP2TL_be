@@ -13,7 +13,8 @@ class Pelanggan extends Model
         'alamat',
         'unitup',
         'longitude',
-        'latitude'
+        'latitude',
+        'peruntukan'
     ];
 
     public function meters()

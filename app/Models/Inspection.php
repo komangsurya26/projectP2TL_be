@@ -18,7 +18,6 @@ class Inspection extends Model
         'kode_pesan',
         'pemutusan',
         'rupiah_ts',
-        'officer_name',
         'notes',
         'source',
     ];

@@ -34,11 +34,11 @@ class PrabayarImportService
             }
 
             $this->processRows($handle, $fileHeader, $delimiter, $historyId, $filePath);
-
-            fclose($handle);
         } catch (\Exception $e) {
             Log::error("Error proses import: " . $e->getMessage());
             $this->updateHistory($historyId, 0, 'error');
+        } finally {
+            if ($handle) fclose($handle);
         }
     }
 

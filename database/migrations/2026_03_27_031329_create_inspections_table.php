@@ -26,7 +26,6 @@ return new class extends Migration
             $table->string('pemutusan')->nullable();
             $table->decimal('rupiah_ts', 18, 2)->nullable();
 
-            $table->string('officer_name')->nullable();
             $table->text('notes')->nullable();
             $table->string('source')->default('EPM'); //EPM
 

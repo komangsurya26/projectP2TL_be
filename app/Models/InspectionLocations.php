@@ -7,13 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class InspectionLocations extends Model
 {
     protected $table = 'inspection_locations';
-    
+
     protected $fillable = [
         'inspection_id',
         'latitude',
-        'longitude',
-        'gardu',
-        'tiang',
+        'longitude'
     ];
 
     public function inspection()
