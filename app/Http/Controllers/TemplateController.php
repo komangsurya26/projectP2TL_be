@@ -4,26 +4,27 @@ namespace App\Http\Controllers;
 
 class TemplateController extends Controller
 {
-    public function downloadDil()
+    public function download($type)
     {
-        $filename = 'DIL_Template.csv';
-        $headers = config('csv_headers.dil');
-
-        $callback = function () use ($headers) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $headers);
-            fclose($file);
+        $types = match ($type) {
+            'dil' => 'dil',
+            'ami' => 'ami',
+            'amr' => 'amr',
+            'epm' => 'epm',
+            'prabayar' => 'prabayar',
+            'sorek' => 'sorek',
+            default => null,
         };
 
-        return response()->streamDownload($callback, $filename, [
-            'Content-Type' => 'text/csv',
-        ]);
-    }
+        if ($types === null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Type tidak valid',
+            ], 422);
+        }
 
-    public function downloadAmi()
-    {
-        $filename = 'AMI_Template.csv';
-        $headers = config('csv_headers.ami');
+        $filename = strtoupper($types) . '_Template.csv';
+        $headers = config('csv_headers.' . $types);
 
         $callback = function () use ($headers) {
             $file = fopen('php://output', 'w');

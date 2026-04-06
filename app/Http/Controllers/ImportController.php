@@ -17,74 +17,31 @@ use Illuminate\Support\Facades\Auth;
 
 class ImportController extends Controller
 {
-    public function uploadDil(Request $request)
+    public function upload(Request $request, $type)
     {
         $userId = Auth::user()->id;
-        return $this->handleChunkUpload(
-            $request,
-            'dil_uploads',
-            'csv_headers.dil',
-            ProcessDILImportJob::class,
-            $userId
-        );
-    }
+        $jobClass = match ($type) {
+            'dil' => ProcessDILImportJob::class,
+            'ami' => ProcessAMIImportJob::class,
+            'amr' => ProcessAMRImportJob::class,
+            'epm' => ProcessEPMImportJob::class,
+            'prabayar' => ProcessPrabayarImportJob::class,
+            'sorek' => ProcessSorekImportJob::class,
+            default => null,
+        };
 
-    public function uploadAmi(Request $request)
-    {
-        $userId = Auth::user()->id;
-        return $this->handleChunkUpload(
-            $request,
-            'ami_uploads',
-            'csv_headers.ami',
-            ProcessAMIImportJob::class,
-            $userId
-        );
-    }
+        if ($jobClass === null) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Type tidak valid',
+            ], 422);
+        }
 
-    public function uploadAmr(Request $request)
-    {
-        $userId = Auth::user()->id;
         return $this->handleChunkUpload(
             $request,
-            'amr_uploads',
-            'csv_headers.amr',
-            ProcessAMRImportJob::class,
-            $userId
-        );
-    }
-
-    public function uploadEPM(Request $request)
-    {
-        $userId = Auth::user()->id;
-        return $this->handleChunkUpload(
-            $request,
-            'epm_uploads',
-            'csv_headers.epm',
-            ProcessEPMImportJob::class,
-            $userId
-        );
-    }
-
-    public function uploadPrabayar(Request $request)
-    {
-        $userId = Auth::user()->id;
-        return $this->handleChunkUpload(
-            $request,
-            'prabayar_uploads',
-            'csv_headers.prabayar',
-            ProcessPrabayarImportJob::class,
-            $userId
-        );
-    }
-
-    public function uploadSorek(Request $request)
-    {
-        $userId = Auth::user()->id;
-        return $this->handleChunkUpload(
-            $request,
-            'sorek_uploads',
-            'csv_headers.sorek',
-            ProcessSorekImportJob::class,
+            $type . '_uploads',
+            'csv_headers.' . $type,
+            $jobClass,
             $userId
         );
     }

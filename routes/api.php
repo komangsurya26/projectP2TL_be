@@ -15,16 +15,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('jwt.cookie')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/upload-dil', [ImportController::class, 'uploadDil']);
-    Route::post('/upload-ami', [ImportController::class, 'uploadAmi']);
-    Route::post('/upload-amr', [ImportController::class, 'uploadAmr']);
-    Route::post('/upload-epm', [ImportController::class, 'uploadEPM']);
-    Route::post('/upload-prabayar', [ImportController::class, 'uploadPrabayar']);
-    Route::post('/upload-sorek', [ImportController::class, 'uploadSorek']);
+    Route::post('/upload/{type}', [ImportController::class, 'upload']);
 });
 
-Route::get('/template-dil', [TemplateController::class, 'downloadDil']);
-Route::get('/template-ami', [TemplateController::class, 'downloadAmi']);
+Route::get('/template/{type}', [TemplateController::class, 'download']);
 
 Route::get('/pelanggan', [PelangganController::class, 'get']);
 Route::get('/upload-history', [UploadHistoryController::class, 'get']);
