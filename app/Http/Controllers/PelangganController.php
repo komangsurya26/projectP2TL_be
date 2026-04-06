@@ -10,6 +10,7 @@ class PelangganController extends Controller
     public function get(Request $request)
     {
         $idpel = $request->input('idpel');
+        $ulp = $request->input('ulp');
 
         // Base query dengan join agar pencarian idpel atau meter_number cepat
         $query = Pelanggan::query()
@@ -36,6 +37,11 @@ class PelangganController extends Controller
         if ($request->filled('jenis_meter')) {
             $jenis = strtoupper($request->jenis_meter);
             $query->where('meters.meter_type', $jenis);
+        }
+
+        // Filter ULP
+        if ($ulp) {
+            $query->where('pelanggans.alamat', $ulp);
         }
 
         // Filter status anomaly
