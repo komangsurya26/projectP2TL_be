@@ -90,16 +90,17 @@ class AMRImportService
             'voltage_r' => NumberHelper::safeFloat($row['VOLTAGE_L1'] ?? null),
             'voltage_s' => NumberHelper::safeFloat($row['VOLTAGE_L2'] ?? null),
             'voltage_t' => NumberHelper::safeFloat($row['VOLTAGE_L3'] ?? null),
+
             'current_r' => NumberHelper::safeFloat($row['CURRENT_L1'] ?? null),
             'current_s' => NumberHelper::safeFloat($row['CURRENT_L2'] ?? null),
             'current_t' => NumberHelper::safeFloat($row['CURRENT_L3'] ?? null),
+
             'import_kwh' => NumberHelper::safeFloat($row['KWH_IMPORT_TOTAL'] ?? null),
             'export_kwh' => NumberHelper::safeFloat($row['KWH_EXPORT_TOTAL'] ?? null),
-            'kwh_total' => NumberHelper::safeFloat($row['KWH_IMPORT_TOTAL'] ?? null),
+
             'kvarh_total' => NumberHelper::safeFloat($row['KVARH_IMPORT_TOTAL'] ?? null),
-            'power_kw' => NumberHelper::safeFloat($row['ACTIVE_POWER_TOTAL'] ?? null),
             'power_factor' => NumberHelper::safeFloat($row['POWER_FACTOR_TOTAL'] ?? null),
-            'apparent_power' => NumberHelper::safeFloat($row['APPARENT_POWER_TOTAL'] ?? null),
+
             'source' => 'AMR',
             'created_at' => now(),
             'updated_at' => now()
@@ -120,11 +121,8 @@ class AMRImportService
                 'current_t',
                 'import_kwh',
                 'export_kwh',
-                'kwh_total',
                 'kvarh_total',
-                'power_kw',
                 'power_factor',
-                'apparent_power',
                 'updated_at'
             ]
         );

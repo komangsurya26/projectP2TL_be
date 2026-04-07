@@ -98,12 +98,8 @@ class AMIImportService
             'import_kwh' => NumberHelper::safeFloat($row['IMPORT_ACTIVE_ENERGY_SEND'] ?? null),
             'export_kwh' => NumberHelper::safeFloat($row['EXPORT_ACTIVE_ENERGY_RECEIVE'] ?? null),
 
-            'kwh_total' => NumberHelper::safeFloat($row['IMPORT_ACTIVE_ENERGY_SEND'] ?? null),
             'kvarh_total' => NumberHelper::safeFloat($row['IMPORT_TOTAL_REACTIVE_ENERGY'] ?? null),
-            'power_kw' => NumberHelper::safeFloat($row['IM_AC_P'] ?? null),
-
             'power_factor' => NumberHelper::safeFloat($row['PF'] ?? null),
-            'apparent_power' => NumberHelper::safeFloat($row['APPARENT_POWER_SEND'] ?? null),
 
             'source' => 'AMI',
 
@@ -126,11 +122,8 @@ class AMIImportService
                 'current_t',
                 'import_kwh',
                 'export_kwh',
-                'kwh_total',
                 'kvarh_total',
-                'power_kw',
                 'power_factor',
-                'apparent_power',
                 'updated_at'
             ]
         );

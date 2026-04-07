@@ -30,12 +30,7 @@ return new class extends Migration
             $table->float('import_kwh')->nullable();
             $table->float('export_kwh')->nullable();
 
-            $table->float('kwh_total')->nullable();
             $table->float('kvarh_total')->nullable();
-
-            $table->float('power_kw')->nullable();
-            $table->float('apparent_power')->nullable();
-
             $table->float('power_factor')->nullable();
 
             $table->string('source'); // AMI / AMR / MANUAL
